@@ -32,6 +32,23 @@ const envSchema = z.object({
 
   // Dominios permitidos para CORS
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
+
+  // URL del frontend (para redirects de Stripe, emails, etc.)
+  FRONTEND_URL: z.string().url('FRONTEND_URL debe ser una URL válida').optional(),
+
+  // SMTP — necesario para envío de emails (confirmaciones, verificación)
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().regex(/^\d+$/, 'SMTP_PORT debe ser un número').optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().email('SMTP_FROM debe ser un email válido').optional(),
+
+  // Stripe — necesario para procesar pagos
+  STRIPE_SECRET_KEY: z.string().optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().optional(),
+
+  // 17track — necesario para rastreo de paquetes
+  TRACK17_API_KEY: z.string().optional(),
 });
 
 

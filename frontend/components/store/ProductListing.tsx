@@ -16,9 +16,9 @@ interface ProductListingProps {
 
 /* ─── Filtro Acordeón ─── */
 const FilterSection = ({
-  title, children, defaultOpen = true
+  title, children, defaultOpen = false
 }: {
-  title: string; children: React.ReactNode; defaultOpen?: boolean
+  title: React.ReactNode; children: React.ReactNode; defaultOpen?: boolean
 }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
   return (
@@ -257,7 +257,7 @@ export const ProductListing = ({ title, products: initialProducts, clubSlug, ena
 
       {/* Estilos (Dinámicos desde tags) */}
       {tags.length > 0 && (
-        <FilterSection title="Estilos" defaultOpen={false}>
+        <FilterSection title="Estilos">
           {tags.map((tag) => (
             <FilterCheckbox
               key={tag.id}
@@ -281,7 +281,14 @@ export const ProductListing = ({ title, products: initialProducts, clubSlug, ena
         ))}
       </FilterSection>
 
-      <FilterSection title="Talla">
+      <FilterSection
+        title={
+          <span className="flex items-center gap-2">
+            <span>Tallas</span>
+            <span className="text-[11px] font-normal text-gray-400 normal-case">(Envío Express)</span>
+          </span>
+        }
+      >
         {SIZES.map((s) => (
           <FilterCheckbox key={s} label={s} checked={selectedSizes.includes(s)} onChange={() => toggle(selectedSizes, s, setSelectedSizes)} />
         ))}

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useCartStore } from "@/app/store/cartStore";
 import Navbar from "@/components/Navbar";
 import { CheckCircle2, Package, MapPin, Truck, Copy, Check } from "lucide-react";
 
@@ -48,8 +49,28 @@ export default function ConfirmationPage() {
     const [showContent, setShowContent] = useState(false);
 
     useEffect(() => {
-        api.get(`/api/v1/orders/${orderNumber}`)
-            .then(data => { setOrder(data); setLoading(false); setTimeout(() => setShowContent(true), 300); })
+        // Recuperar el email guardado en sessionStorage durante el checkout.
+        // Si no existe (el usuario llegó directo a esta URL), se omite y solo
+        // se muestran los campos públicos (sin datos personales).
+        const savedEmail = sessionStorage.getItem('order_email') ?? '';
+        const url = savedEmail
+            ? `/api/v1/orders/${orderNumber}?email=${encodeURIComponent(savedEmail)}`
+            : `/api/v1/orders/${orderNumber}`;
+
+        api.get(url)
+            .then(data => {
+                setOrder(data);
+                setLoading(false);
+                setTimeout(() => setShowContent(true), 300);
+
+                // Limpiar carrito si el pago fue confirmado O si el usuario viene del checkout
+                // (sessionStorage tiene el email = pasó por el flujo de pago).
+                const cameFromCheckout = Boolean(savedEmail);
+                if (cameFromCheckout || data.status === 'PAID' || data.status === 'PROCESSING' || data.status === 'SHIPPED') {
+                    useCartStore.getState().clearCart();
+                    sessionStorage.removeItem('order_email');
+                }
+            })
             .catch(() => { setError("Orden no encontrada"); setLoading(false); });
     }, [orderNumber]);
 
@@ -60,8 +81,6 @@ export default function ConfirmationPage() {
     };
 
     const formatPrice = (cents: number) => `$${(cents / 100).toFixed(2).replace(/\.00$/, '')}`;
-
-    const shippingLabel = order?.shippingMethod === "EXPRESS" ? "Express (DHL) — 1-3 días" : "Estándar — 3-7 días";
 
     if (loading) {
         return (
@@ -149,7 +168,7 @@ export default function ConfirmationPage() {
                             <h3 className="font-bold text-sm uppercase tracking-wide">Envío</h3>
                         </div>
                         <div className="text-sm text-th-secondary space-y-1">
-                            <p className="text-th-primary font-semibold">{shippingLabel}</p>
+                            <p className="text-th-primary font-semibold">{order.shippingMethod || 'Envío Estándar'}</p>
                             <p>{order.shippingCents === 0 ? "Envío Gratis ✨" : formatPrice(order.shippingCents)}</p>
                         </div>
                     </div>

@@ -71,4 +71,68 @@ router.get('/analytics/views/:productId', requireAuth, async (req: Request, res:
   }
 });
 
+/* ─── GET /api/v1/analytics/dashboard — Métricas del dashboard (admin) ─── */
+router.get('/analytics/dashboard', requireAuth, async (_req: Request, res: Response) => {
+  try {
+    const paidStatuses = ['PAID', 'SHIPPED', 'DELIVERED'] as const;
+
+    // 1. Obtener todas las órdenes pagadas para calcular comisiones por orden
+    const paidOrders = await prisma.order.findMany({
+      where: { status: { in: [...paidStatuses] } },
+      select: { totalCents: true, createdAt: true },
+    });
+
+    // Comisión de Stripe: 3.6% + $3.00 MXN fijos por transacción
+    const STRIPE_PERCENT = 0.036;
+    const STRIPE_FIXED_CENTS = 300;
+
+    let grossRevenueCents = 0;
+    let totalFeesCents = 0;
+
+    // Ventas de hoy
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    let todayGrossCents = 0;
+    let todayFeesCents = 0;
+    let todayOrderCount = 0;
+
+    for (const order of paidOrders) {
+      const fee = Math.round(order.totalCents * STRIPE_PERCENT) + STRIPE_FIXED_CENTS;
+      grossRevenueCents += order.totalCents;
+      totalFeesCents += fee;
+
+      if (order.createdAt >= todayStart) {
+        todayGrossCents += order.totalCents;
+        todayFeesCents += fee;
+        todayOrderCount++;
+      }
+    }
+
+    const netRevenueCents = grossRevenueCents - totalFeesCents;
+    const todayNetCents = todayGrossCents - todayFeesCents;
+
+    // 2. Órdenes pendientes de envío (pagadas pero no enviadas)
+    const pendingShipment = await prisma.order.count({
+      where: { status: 'PAID' },
+    });
+
+    // 3. Total de productos
+    const totalProducts = await prisma.product.count();
+
+    return res.json({
+      grossRevenueCents,
+      netRevenueCents,
+      totalFeesCents,
+      todayGrossCents,
+      todayNetCents,
+      todayOrderCount,
+      pendingShipment,
+      totalProducts,
+    });
+  } catch (err) {
+    console.error('Error obteniendo métricas del dashboard:', err);
+    return res.status(500).json({ error: 'Error interno' });
+  }
+});
+
 export default router;

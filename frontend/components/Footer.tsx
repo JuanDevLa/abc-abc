@@ -4,17 +4,17 @@ const Footer = () => (
   <footer className="bg-[#FAF5EF] text-[#B8977E] pt-10 pb-6 transition-colors duration-300">
     <div className="container mx-auto px-6">
 
-      {/* ── 5 Columnas de info ── */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-8">
+      {/* ── 4 Columnas de info ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-8">
 
         {/* Compra en línea */}
         <div>
           <h4 className="text-[#B8977E] font-bold text-sm uppercase tracking-wider mb-4">Compra en línea</h4>
           <ul className="space-y-2 text-xs text-[#C8AE96]">
-            <li><Link href="/catalog" className="hover:text-[#8B6D56] transition-colors">Envío a todo México</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Centro de ayuda</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Seguridad</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Formas de pago</Link></li>
+            <li><Link href="/shipping" className="hover:text-[#8B6D56] transition-colors">Envío a todo México</Link></li>
+            <li><Link href="/help" className="hover:text-[#8B6D56] transition-colors">Centro de ayuda</Link></li>
+            <li><Link href="/privacy" className="hover:text-[#8B6D56] transition-colors">Seguridad</Link></li>
+            <li><Link href="/payment-methods" className="hover:text-[#8B6D56] transition-colors">Formas de pago</Link></li>
           </ul>
         </div>
 
@@ -22,9 +22,9 @@ const Footer = () => (
         <div>
           <h4 className="text-[#B8977E] font-bold text-sm uppercase tracking-wider mb-4">Pedidos</h4>
           <ul className="space-y-2 text-xs text-[#C8AE96]">
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Estatus de tu pedido</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Facturación</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Cambios y devoluciones</Link></li>
+            <li><Link href="/tracking" className="hover:text-[#8B6D56] transition-colors">Rastrear pedido</Link></li>
+            <li><Link href="/help#facturacion" className="hover:text-[#8B6D56] transition-colors">Facturación</Link></li>
+            <li><Link href="/returns" className="hover:text-[#8B6D56] transition-colors">Cambios y devoluciones</Link></li>
           </ul>
         </div>
 
@@ -32,28 +32,20 @@ const Footer = () => (
         <div>
           <h4 className="text-[#B8977E] font-bold text-sm uppercase tracking-wider mb-4">Raw</h4>
           <ul className="space-y-2 text-xs text-[#C8AE96]">
-            <li><Link href="/aviso-de-privacidad" className="hover:text-[#8B6D56] transition-colors">Aviso de privacidad y términos</Link></li>
-            <li><Link href="/terminos-y-condiciones" className="hover:text-[#8B6D56] transition-colors">Condiciones de compra en línea</Link></li>
+            <li><Link href="/privacy" className="hover:text-[#8B6D56] transition-colors">Aviso de privacidad y términos</Link></li>
+            <li><Link href="/terms" className="hover:text-[#8B6D56] transition-colors">Condiciones de compra en línea</Link></li>
           </ul>
         </div>
 
-        {/* Servicios */}
-        <div>
-          <h4 className="text-[#B8977E] font-bold text-sm uppercase tracking-wider mb-4">Servicios</h4>
-          <ul className="space-y-2 text-xs text-[#C8AE96]">
-            <li><Link href="/catalog" className="hover:text-[#8B6D56] transition-colors">Tarjeta de regalo</Link></li>
-            <li><Link href="/catalog" className="hover:text-[#8B6D56] transition-colors">Uniformes</Link></li>
-            <li><Link href="/catalog" className="hover:text-[#8B6D56] transition-colors">Impresión de playeras</Link></li>
-          </ul>
-        </div>
+
 
         {/* Mi cuenta */}
         <div>
           <h4 className="text-[#B8977E] font-bold text-sm uppercase tracking-wider mb-4">Mi cuenta</h4>
           <ul className="space-y-2 text-xs text-[#C8AE96]">
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">¿Cómo crear una cuenta?</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Beneficios de tener una cuenta</Link></li>
-            <li><Link href="#" className="hover:text-[#8B6D56] transition-colors">Comprar como invitado</Link></li>
+            <li><Link href="/login" className="hover:text-[#8B6D56] transition-colors">¿Cómo crear una cuenta?</Link></li>
+            <li><Link href="/account-benefits" className="hover:text-[#8B6D56] transition-colors">Beneficios de tener una cuenta</Link></li>
+            <li><Link href="/checkout" className="hover:text-[#8B6D56] transition-colors">Comprar como invitado</Link></li>
           </ul>
         </div>
 
@@ -127,9 +119,9 @@ const Footer = () => (
         <div className="flex items-center gap-3 text-xs text-[#B8977E] font-bold">
           <span>© 2026 RAW</span>
           <span className="text-[#B8977E]/40">|</span>
-          <Link href="/terminos-y-condiciones" className="hover:text-[#8B6D56] transition-colors">Términos y condiciones</Link>
+          <Link href="/terms" className="hover:text-[#8B6D56] transition-colors">Términos y condiciones</Link>
           <span className="text-[#B8977E]/40">|</span>
-          <Link href="/aviso-de-privacidad" className="hover:text-[#8B6D56] transition-colors">Cuidamos tu privacidad</Link>
+          <Link href="/privacy" className="hover:text-[#8B6D56] transition-colors">Cuidamos tu privacidad</Link>
         </div>
 
         {/* Métodos de pago */}

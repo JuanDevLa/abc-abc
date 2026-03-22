@@ -29,7 +29,7 @@ export async function generateMetadata(
   const product = await getProduct(params.id);
 
   if (!product) {
-    return { title: "Producto no encontrado — JerseyRaiders" };
+    return { title: "Producto no encontrado — Jerseys Raw" };
   }
 
   const price = product.variants?.[0]?.priceCents
@@ -37,19 +37,19 @@ export async function generateMetadata(
     : "";
 
   const description = product.description
-    || `${product.name}${price ? ` — ${price}` : ""}. Jersey oficial disponible en JerseyRaiders.`;
+    || `${product.name}${price ? ` — ${price}` : ""}. Jersey oficial disponible en Jerseys Raw.`;
 
   const imageUrl = product.images?.[0]?.url || product.imageUrl || "";
 
   return {
-    title: `${product.name}${price ? ` — ${price}` : ""} | JerseyRaiders`,
+    title: `${product.name}${price ? ` — ${price}` : ""} | Jerseys Raw`,
     description,
     openGraph: {
       title: `${product.name}${price ? ` — ${price}` : ""}`,
       description,
       images: imageUrl ? [{ url: imageUrl, width: 800, height: 800, alt: product.name }] : [],
-      type: "website",
-      siteName: "JerseyRaiders",
+      type: "website" as const,
+      siteName: "Jerseys Raw",
     },
     twitter: {
       card: "summary_large_image",

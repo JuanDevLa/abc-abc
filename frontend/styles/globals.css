@@ -54,12 +54,12 @@
   /* #F2F2F2 */
   --text-secondary: 160 160 160;
   /* #A0A0A0 */
-  --accent: 0 255 133;
-  /* #00FF85 */
-  --accent-hover: 22 199 158;
-  /* #16C79E */
-  --accent-cta: 0 255 133;
-  /* #00FF85 */
+  --accent: 248 195 124;
+  /* #F8C37C */
+  --accent-hover: 220 165 90;
+  /* #DCA55A — dorado más oscuro para hover */
+  --accent-cta: 248 195 124;
+  /* #F8C37C */
   --accent-cta-text: 0 0 0;
   /* Negro sobre neón */
   --border: 255 255 255;
@@ -68,8 +68,8 @@
   /* #0D0D0D */
   --announcement-bg: 28 29 33;
   /* #1C1D21 */
-  --card-hover: 0 255 133;
-  /* hover a neón */
+  --card-hover: 248 195 124;
+  /* hover a dorado */
   --sale: 239 68 68;
   /* #EF4444 */
   --badge-bg: 255 255 255;

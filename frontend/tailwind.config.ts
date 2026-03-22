@@ -34,6 +34,7 @@ const config: Config = {
         heading: ['"Bebas Neue"', 'sans-serif'],
         body: ['var(--font-inter)', 'system-ui', 'sans-serif'],
         sans: ['var(--font-inter)', 'system-ui', 'sans-serif'],
+        jost: ['var(--font-jost)', 'sans-serif'],
       },
       keyframes: {
         'marquee-x': {

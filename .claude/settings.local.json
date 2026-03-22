@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs wc:*)",
+      "Bash(find C:UsersjuancPLayerav2-mainPLayerav2-mainbackend -name *.env* -type f)"
+    ]
+  }
+}

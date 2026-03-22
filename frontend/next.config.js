@@ -45,9 +45,8 @@ const nextConfig = {
     // los <img> nativos existentes y las imágenes de productos del admin.
   },
 
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript errors now fail the build — do not re-add ignoreBuildErrors.
+  // Run `pnpm typecheck` before building to catch issues early.
 }
 
 module.exports = nextConfig

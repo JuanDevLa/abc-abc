@@ -167,7 +167,13 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
         // Intentar buscar por slug primero (más común en URLs)
         let product = await prisma.product.findUnique({
             where: { slug: idOrSlug },
-            include: { images: { orderBy: { sortOrder: 'asc' } }, variants: true, tags: true },
+            include: { 
+                images: { orderBy: { sortOrder: 'asc' } }, 
+                variants: true, 
+                tags: true,
+                category: true,
+                club: { include: { league: true } }
+            },
         });
 
         // Si no se encontró por slug, intentar por UUID
@@ -176,7 +182,13 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
             if (isUUID) {
                 product = await prisma.product.findUnique({
                     where: { id: idOrSlug },
-                    include: { images: { orderBy: { sortOrder: 'asc' } }, variants: true, tags: true },
+                    include: { 
+                        images: { orderBy: { sortOrder: 'asc' } }, 
+                        variants: true, 
+                        tags: true,
+                        category: true,
+                        club: { include: { league: true } }
+                    },
                 });
             }
         }
@@ -192,6 +204,9 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
             description: product.description,
             brand: product.brand,
             categoryId: product.categoryId,
+            category: product.category, // NUEVO
+            clubId: product.clubId,
+            club: product.club, // NUEVO
             imageUrl: product.images[0]?.url || '',
             images: product.images.map(img => ({ id: img.id, url: img.url, sortOrder: img.sortOrder })),
             price: product.variants[0] ? product.variants[0].priceCents / 100 : 0,
@@ -200,7 +215,6 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
                 : null,
             gender: product.variants[0]?.audience || 'HOMBRE',
             type: 'STADIUM',
-            clubId: product.clubId,
             tagIds: product.tags.map(t => t.tagId),
             variants: product.variants.map(v => ({
                 id: v.id,
@@ -208,6 +222,10 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
                 size: v.size,
                 color: v.color,
                 audience: v.audience,
+                sleeve: v.sleeve,
+                isPlayerVersion: v.isPlayerVersion,
+                hasLeaguePatch: v.hasLeaguePatch,
+                hasChampionsPatch: v.hasChampionsPatch,
                 stock: v.stock,
                 priceCents: v.priceCents,
                 compareAtPriceCents: v.compareAtPriceCents,
@@ -265,20 +283,20 @@ router.post('/products', requireAuth, async (req, res, next) => {
             seasonCode: '24-25',
             imageUrl: req.body.imageUrl || (req.body.images?.[0]) || undefined,
             images: req.body.images || undefined,
-            variants: req.body.variants || [{
-                sku: `${req.body.slug}-${Date.now()}`,
-                size: 'Unitalla',
+            variants: req.body.variants || ['S', 'M', 'L', 'XL', '2XL', '3XL', '4XL'].map(size => ({
+                sku: `${req.body.slug}-${size}-${Date.now()}`,
+                size,
                 audience: req.body.gender || 'HOMBRE',
                 sleeve: 'SHORT',
                 priceCents: Math.round((req.body.price || 0) * 100),
                 compareAtPriceCents: req.body.compareAtPrice ? Math.round(req.body.compareAtPrice * 100) : null,
                 costCents: 0,
-                stock: 50,
+                stock: 0,
                 isDropshippable: true,
                 allowsNameNumber: false,
                 customizationPrice: 19900,
                 weightGrams: 200,
-            }],
+            })),
         });
 
         // Vincular categoría y tags
@@ -301,7 +319,7 @@ router.post('/products', requireAuth, async (req, res, next) => {
     }
 });
 
-// Zod schema para validación de PUT (inline para evitar dependencia circular)
+// Zod schema para validación de PUT (sincronizado con POST)
 const UpdateProductSchema = z.object({
     name: z.string(),
     slug: z.string(),
@@ -309,18 +327,22 @@ const UpdateProductSchema = z.object({
     price: z.number(),
     imageUrl: z.string().optional(),
     images: z.array(z.string()).optional(),
-    brand: z.string().optional(),
+    brand: z.string().optional().nullable(),
     gender: z.string().optional(),
-    type: z.string().optional(),
+    authentic: z.boolean().optional(),      // Versión global del producto
     categoryId: z.string().optional(),
     compareAtPrice: z.number().optional().nullable(),
-    clubId: z.string().optional(),
+    clubId: z.string().optional().nullable(),
     tagIds: z.array(z.string()).optional(),
     globalAllowsNameNumber: z.boolean().optional(),
     variants: z.array(z.object({
         size: z.string(),
-        color: z.string().optional(),
+        color: z.string().optional().nullable(),
         audience: z.string().optional(),
+        sleeve: z.string().optional().nullable(),          // SHORT | LONG
+        isPlayerVersion: z.boolean().default(false),       // Fan | Player
+        hasLeaguePatch: z.boolean().default(false),
+        hasChampionsPatch: z.boolean().default(false),
         stock: z.number().default(0),
         priceCents: z.number(),
         compareAtPriceCents: z.number().optional().nullable(),
@@ -344,6 +366,7 @@ router.put('/products/:id', requireAuth, async (req, res, next) => {
                     slug: body.slug,
                     description: body.description,
                     brand: body.brand,
+                    authentic: body.authentic,
                     categoryId: body.categoryId,
                     clubId: body.clubId || null,
                 },
@@ -363,21 +386,30 @@ router.put('/products/:id', requireAuth, async (req, res, next) => {
             if (body.variants && body.variants.length > 0) {
                 await tx.productVariant.deleteMany({ where: { productId: id } });
                 await tx.productVariant.createMany({
-                    data: body.variants.map(v => ({
-                        productId: id,
-                        sku: `${body.slug}-${v.size}-${v.color || 'DEF'}`.toUpperCase(),
-                        size: v.size,
-                        color: v.color || null,
-                        audience: (v.audience || body.gender || 'HOMBRE') as any,
-                        stock: v.stock,
-                        priceCents: v.priceCents,
-                        compareAtPriceCents: v.compareAtPriceCents || null,
-                        isDropshippable: v.isDropshippable,
-                        allowsNameNumber: body.globalAllowsNameNumber !== undefined
-                            ? body.globalAllowsNameNumber
-                            : v.allowsNameNumber,
-                        customizationPrice: v.customizationPrice,
-                    })),
+                    data: body.variants.map(v => {
+                        const sleeveTag = v.sleeve === 'LONG' ? 'ML' : 'MC';
+                        const versionTag = v.isPlayerVersion ? 'PLY' : 'FAN';
+                        const patchTag = v.hasLeaguePatch ? 'LP' : v.hasChampionsPatch ? 'CP' : 'NP';
+                        return {
+                            productId: id,
+                            sku: `${body.slug}-${v.size}-${versionTag}-${sleeveTag}-${patchTag}`.toUpperCase(),
+                            size: v.size,
+                            color: v.color || null,
+                            audience: (v.audience || body.gender || 'HOMBRE') as any,
+                            sleeve: (v.sleeve || 'SHORT') as any,
+                            isPlayerVersion: v.isPlayerVersion,
+                            hasLeaguePatch: v.hasLeaguePatch,
+                            hasChampionsPatch: v.hasChampionsPatch,
+                            stock: v.stock,
+                            priceCents: v.priceCents,
+                            compareAtPriceCents: v.compareAtPriceCents || null,
+                            isDropshippable: v.isDropshippable,
+                            allowsNameNumber: body.globalAllowsNameNumber !== undefined
+                                ? body.globalAllowsNameNumber
+                                : v.allowsNameNumber,
+                            customizationPrice: v.customizationPrice,
+                        };
+                    }),
                 });
             } else {
                 // Sin variantes nuevas → actualizar solo precio/audience en la primera

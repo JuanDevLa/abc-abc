@@ -21,11 +21,9 @@ export default async function CollectionPage({ params }: { params: { slug: strin
   const title = slug.replace(/-/g, ' ').toUpperCase();
 
   return (
-    <ProductListing 
+    <ProductListing
       title={title}
-      count={data.items ? data.items.length : 0}
       products={data.items || []}
-      categorySlug={slug}
     />
   );
 }

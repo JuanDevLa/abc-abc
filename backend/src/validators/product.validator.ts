@@ -80,6 +80,7 @@ export const CreateProductSchema = z.object({
     sleeve: SleeveEnum,
     hasLeaguePatch: z.boolean().optional().default(false),
     hasChampionsPatch: z.boolean().optional().default(false),
+    isPlayerVersion: z.boolean().optional().default(false),
     allowsNameNumber: z.boolean().optional().default(false),
     customizationPrice: z.number().int().nonnegative().optional().default(19900),
     isDropshippable: z.boolean().optional().default(true),

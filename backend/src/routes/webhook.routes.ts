@@ -5,6 +5,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma.js';
+import { sendOrderConfirmationEmail } from '../lib/mailer.js';
 
 const router = Router();
 
@@ -20,8 +21,6 @@ const stripe = stripeSecretKey
 router.post(
   '/stripe',
   async (req: Request, res: Response) => {
-
-    console.log('🔔 Webhook recibido — tipo de body:', typeof req.body, '| es Buffer:', Buffer.isBuffer(req.body));
 
     // Verificación rápida de configuración
     if (!stripe || !webhookSecret) {
@@ -42,7 +41,6 @@ router.post(
       // ✅ REGLA DE SEGURIDAD: Verificar firma con el body CRUDO
       // Esto garantiza que el evento viene de Stripe, no de un tercero.
       event = stripe.webhooks.constructEvent(req.body as Buffer, sig, webhookSecret);
-      console.log('✅ Evento verificado:', event.type, '| ID:', event.id);
     } catch (err: any) {
       console.error('❌ Webhook: Firma inválida —', err.message);
       return res.status(400).json({ error: `Firma inválida: ${err.message}` });
@@ -58,12 +56,6 @@ router.post(
         case 'checkout.session.completed': {
           const session = event.data.object as Stripe.Checkout.Session;
 
-          console.log('📦 checkout.session.completed:', {
-            sessionId:     session.id,
-            paymentStatus: session.payment_status,
-            metadata:      session.metadata,
-          });
-
           // Extraer el número de orden de los metadatos de la sesión
           const orderNumber = session.metadata?.orderNumber;
 
@@ -78,33 +70,37 @@ router.post(
             return res.status(200).json({ received: true, note: 'payment_status not paid yet' });
           }
 
-          // Actualizar la orden a PAID
+          // Actualizar la orden a PAID y obtener datos completos para el email
+          let paidOrder: any;
           try {
-            const updated = await prisma.order.update({
+            paidOrder = await prisma.order.update({
               where: { orderNumber },
               data: {
                 status:    'PAID',
-                expiresAt: null, // Ya pagó, eliminamos la expiración
+                expiresAt: null,
               },
+              include: { items: true },
             });
-            console.log(`✅ Orden ${updated.orderNumber} marcada como PAID (sesión: ${session.id})`);
           } catch (dbError) {
             console.error(`❌ Fallo al actualizar orden ${orderNumber} a PAID:`, dbError);
             return res.status(500).json({ error: 'Error al actualizar la orden' });
           }
+
+          // Enviar email de confirmación (fire-and-forget — no bloquea la respuesta a Stripe)
+          sendOrderConfirmationEmail(paidOrder).catch((emailErr) => {
+            console.error(`⚠️  Email de confirmación fallido para orden ${orderNumber}:`, emailErr);
+          });
+
           break;
         }
 
         // Sesión expirada
         case 'checkout.session.expired': {
           const session = event.data.object as Stripe.Checkout.Session;
-          const orderNumber = session.metadata?.orderNumber;
-          console.log(`ℹ️  Sesión expirada para orden ${orderNumber || 'desconocida'}`);
           break;
         }
 
         default:
-          console.log(`ℹ️  Evento ignorado: ${event.type}`);
           break;
       }
 

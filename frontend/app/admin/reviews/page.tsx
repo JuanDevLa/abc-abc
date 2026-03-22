@@ -1,14 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { ArrowLeft, Star, Plus, Trash2, Loader2 } from "lucide-react";
+import { useState, useEffect, useMemo, useRef } from "react";
+import { ArrowLeft, Star, Plus, Trash2, Loader2, CheckCircle, XCircle, Search, ChevronDown } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+
+type StatusFilter = "all" | "pending" | "approved";
 
 export default function AdminReviewsPage() {
   const [reviews, setReviews] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   // Form
   const [showForm, setShowForm] = useState(false);
@@ -21,21 +24,64 @@ export default function AdminReviewsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
 
-  // Cargar reseñas y productos
+  // Product search
+  const [productSearch, setProductSearch] = useState("");
+  const [productDropdownOpen, setProductDropdownOpen] = useState(false);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
   useEffect(() => {
-    Promise.all([
-      api.get("/api/v1/admin/reviews", { auth: true }),
-      api.get("/api/v1/products?limit=200"),
-    ])
-      .then(([reviewsData, productsData]) => {
-        setReviews(Array.isArray(reviewsData) ? reviewsData : []);
-        // El endpoint devuelve { items: [...], pagination: {...} }
-        const pList = productsData?.items ?? productsData?.products ?? productsData;
+    const handleClick = (e: MouseEvent) => {
+      if (productDropdownRef.current && !productDropdownRef.current.contains(e.target as Node)) {
+        setProductDropdownOpen(false);
+      }
+    };
+    if (productDropdownOpen) document.addEventListener("mousedown", handleClick);
+    return () => document.removeEventListener("mousedown", handleClick);
+  }, [productDropdownOpen]);
+
+  // Cargar reseñas y productos (independientemente)
+  useEffect(() => {
+    let done = 0;
+    const check = () => { done++; if (done >= 2) setLoading(false); };
+
+    api.get("/api/v1/admin/reviews", { auth: true })
+      .then((data) => setReviews(Array.isArray(data) ? data : []))
+      .catch(() => {})
+      .finally(check);
+
+    api.get("/api/v1/products?limit=200")
+      .then((data) => {
+        const pList = data?.items ?? data?.products ?? data;
         setProducts(Array.isArray(pList) ? pList : []);
-        setLoading(false);
       })
-      .catch(() => setLoading(false));
+      .catch(() => {})
+      .finally(check);
   }, []);
+
+  const filteredProducts = useMemo(() => {
+    if (!productSearch.trim()) return products;
+    const q = productSearch.toLowerCase();
+    return products.filter((p: any) => p.name?.toLowerCase().includes(q));
+  }, [products, productSearch]);
+
+  const selectedProduct = useMemo(
+    () => products.find((p: any) => p.id === formProductId),
+    [products, formProductId]
+  );
+
+  const pendingCount = useMemo(
+    () => reviews.filter((r) => !r.verified).length,
+    [reviews]
+  );
+
+  const filteredReviews = useMemo(() => {
+    return reviews.filter((r) => {
+      if (statusFilter === "pending") return !r.verified;
+      if (statusFilter === "approved") return r.verified;
+      return true;
+    });
+  }, [reviews, statusFilter]);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,14 +101,12 @@ export default function AdminReviewsPage() {
         { auth: true }
       );
 
-      // Agregar al listado local con info del producto
       const product = products.find((p: any) => p.id === formProductId);
       setReviews((prev) => [
-        { ...newReview, product: product ? { id: product.id, name: product.name } : null },
+        { ...newReview, verified: true, product: product ? { id: product.id, name: product.name } : null },
         ...prev,
       ]);
 
-      // Reset
       setFormName("");
       setFormComment("");
       setFormImage("");
@@ -73,6 +117,28 @@ export default function AdminReviewsPage() {
       alert(err.message || "Error al crear reseña");
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleApprove = async (id: string) => {
+    try {
+      await api.patch(`/api/v1/admin/reviews/${id}/approve`, {}, { auth: true });
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, verified: true } : r))
+      );
+    } catch (err: any) {
+      alert(err.message || "Error al aprobar");
+    }
+  };
+
+  const handleReject = async (id: string) => {
+    try {
+      await api.patch(`/api/v1/admin/reviews/${id}/reject`, {}, { auth: true });
+      setReviews((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, verified: false } : r))
+      );
+    } catch (err: any) {
+      alert(err.message || "Error al rechazar");
     }
   };
 
@@ -98,7 +164,14 @@ export default function AdminReviewsPage() {
           </Link>
           <div>
             <p className="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-0.5">Admin</p>
-            <h1 className="text-2xl font-black tracking-tight text-slate-800">Reseñas</h1>
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-black tracking-tight text-slate-800">Reseñas</h1>
+              {pendingCount > 0 && (
+                <span className="bg-amber-100 text-amber-700 text-xs font-bold px-2.5 py-1 rounded-full">
+                  {pendingCount} pendiente{pendingCount !== 1 ? "s" : ""}
+                </span>
+              )}
+            </div>
           </div>
         </div>
         <button
@@ -107,6 +180,27 @@ export default function AdminReviewsPage() {
         >
           <Plus className="w-4 h-4" /> Crear Reseña
         </button>
+      </div>
+
+      {/* Filtros de estado */}
+      <div className="flex gap-2">
+        {([
+          { key: "all", label: "Todas", count: reviews.length },
+          { key: "pending", label: "Pendientes", count: pendingCount },
+          { key: "approved", label: "Aprobadas", count: reviews.length - pendingCount },
+        ] as const).map(({ key, label, count }) => (
+          <button
+            key={key}
+            onClick={() => setStatusFilter(key)}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              statusFilter === key
+                ? "bg-indigo-50 text-indigo-600 ring-1 ring-indigo-200"
+                : "text-slate-500 hover:bg-slate-50"
+            }`}
+          >
+            {label} ({count})
+          </button>
+        ))}
       </div>
 
       {/* Formulario de creación */}
@@ -118,19 +212,58 @@ export default function AdminReviewsPage() {
           <h3 className="text-sm font-bold uppercase text-slate-500">Nueva Reseña</h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+            <div className="relative" ref={productDropdownRef}>
               <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Producto</label>
-              <select
-                required
-                value={formProductId}
-                onChange={(e) => setFormProductId(e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 text-sm focus:border-indigo-400 outline-none"
+              <button
+                type="button"
+                onClick={() => setProductDropdownOpen(!productDropdownOpen)}
+                className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-sm text-left flex items-center justify-between focus:border-indigo-400 outline-none"
               >
-                <option value="">— Seleccionar —</option>
-                {products.map((p: any) => (
-                  <option key={p.id} value={p.id}>{p.name}</option>
-                ))}
-              </select>
+                <span className={selectedProduct ? "text-slate-800" : "text-slate-400"}>
+                  {selectedProduct?.name || "— Seleccionar producto —"}
+                </span>
+                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${productDropdownOpen ? "rotate-180" : ""}`} />
+              </button>
+
+              {productDropdownOpen && (
+                <div className="absolute z-50 top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-xl shadow-lg overflow-hidden">
+                  <div className="p-2 border-b border-slate-100">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
+                      <input
+                        type="text"
+                        value={productSearch}
+                        onChange={(e) => setProductSearch(e.target.value)}
+                        placeholder="Buscar producto..."
+                        autoFocus
+                        className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-2 text-sm text-slate-800 focus:border-indigo-400 outline-none"
+                      />
+                    </div>
+                  </div>
+                  <div className="max-h-48 overflow-y-auto">
+                    {filteredProducts.length === 0 ? (
+                      <div className="px-4 py-3 text-sm text-slate-400 text-center">Sin resultados</div>
+                    ) : (
+                      filteredProducts.map((p: any) => (
+                        <button
+                          key={p.id}
+                          type="button"
+                          onClick={() => {
+                            setFormProductId(p.id);
+                            setProductDropdownOpen(false);
+                            setProductSearch("");
+                          }}
+                          className={`w-full text-left px-4 py-2.5 text-sm hover:bg-indigo-50 transition-colors ${
+                            formProductId === p.id ? "bg-indigo-50 text-indigo-600 font-medium" : "text-slate-700"
+                          }`}
+                        >
+                          {p.name}
+                        </button>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
             <div>
               <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Nombre del Cliente</label>
@@ -230,15 +363,25 @@ export default function AdminReviewsPage() {
 
       {/* Lista de reseñas */}
       <div className="bg-white border border-slate-100 rounded-2xl shadow-sm overflow-hidden">
-        {reviews.length === 0 ? (
+        {filteredReviews.length === 0 ? (
           <div className="p-10 text-center text-slate-400">
             <Star className="w-10 h-10 mx-auto mb-3 opacity-30" />
-            <p className="font-bold">Sin reseñas</p>
-            <p className="text-xs mt-1">Crea reseñas manualmente para tus productos</p>
+            <p className="font-bold">
+              {statusFilter === "pending"
+                ? "Sin reseñas pendientes"
+                : statusFilter === "approved"
+                  ? "Sin reseñas aprobadas"
+                  : "Sin reseñas"}
+            </p>
+            <p className="text-xs mt-1">
+              {statusFilter === "all"
+                ? "Crea reseñas manualmente para tus productos"
+                : "Cambia el filtro para ver otras reseñas"}
+            </p>
           </div>
         ) : (
           <div className="divide-y divide-slate-50">
-            {reviews.map((review: any) => (
+            {filteredReviews.map((review: any) => (
               <div key={review.id} className="px-6 py-4 flex items-center justify-between hover:bg-slate-50/50 transition-colors">
                 <div className="flex items-center gap-4 min-w-0">
                   {/* Avatar */}
@@ -257,6 +400,16 @@ export default function AdminReviewsPage() {
                           />
                         ))}
                       </div>
+                      {/* Badge de estado */}
+                      {review.verified ? (
+                        <span className="text-[10px] bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded-full font-medium">
+                          Aprobada
+                        </span>
+                      ) : (
+                        <span className="text-[10px] bg-amber-50 text-amber-600 px-2 py-0.5 rounded-full font-medium">
+                          Pendiente
+                        </span>
+                      )}
                     </div>
                     <p className="text-slate-500 text-xs truncate max-w-md">{review.comment || "Sin comentario"}</p>
                     <p className="text-slate-300 text-[10px] mt-0.5">
@@ -266,12 +419,34 @@ export default function AdminReviewsPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => handleDelete(review.id)}
-                  className="text-rose-300 hover:text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors flex-shrink-0"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                {/* Acciones */}
+                <div className="flex items-center gap-1 flex-shrink-0">
+                  {!review.verified && (
+                    <button
+                      onClick={() => handleApprove(review.id)}
+                      title="Aprobar"
+                      className="text-emerald-400 hover:text-emerald-600 p-2 hover:bg-emerald-50 rounded-lg transition-colors"
+                    >
+                      <CheckCircle className="w-4 h-4" />
+                    </button>
+                  )}
+                  {review.verified && (
+                    <button
+                      onClick={() => handleReject(review.id)}
+                      title="Rechazar (ocultar)"
+                      className="text-amber-400 hover:text-amber-600 p-2 hover:bg-amber-50 rounded-lg transition-colors"
+                    >
+                      <XCircle className="w-4 h-4" />
+                    </button>
+                  )}
+                  <button
+                    onClick={() => handleDelete(review.id)}
+                    title="Eliminar"
+                    className="text-rose-300 hover:text-rose-500 p-2 hover:bg-rose-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>

@@ -5,7 +5,7 @@ import { ArrowRight } from 'lucide-react';
 
 const HERO_IMAGES = [
   "https://images.unsplash.com/photo-1518091043644-c1d4457512c6?q=80&w=2830&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1431324155629-1a6deb1dec8d?q=80&w=2940&auto=format&fit=crop",
+  "https://res.cloudinary.com/dcwyl56kj/image/upload/v1773433296/photo-1431324155629-1a6deb1dec8d_ee8kql.jpg",
   "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?q=80&w=2670&auto=format&fit=crop",
   "https://brand.assets.adidas.com/image/upload/f_auto,q_auto:best,fl_lossy/if_w_gt_1920,w_1920/6506886_FT_FOOTBALL_CLUB_AMERICA_THIRD_NOV_18_ONSITE_HERO_BANNER_D_2880x1280_CELTRA_f410798451.jpg"
 ];

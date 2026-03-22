@@ -1,19 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { useCartStore } from "@/app/store/cartStore";
 import { api } from "@/lib/api";
+import { getDeliveryDates } from "@/lib/shipping";
 import Navbar from "@/components/Navbar";
 import { ShieldCheck, Truck, CreditCard, ChevronRight, Package, Zap, Loader2 } from "lucide-react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
-const SHIPPING_STANDARD = 99;   // $99 MXN
-const SHIPPING_EXPRESS = 199;   // $199 MXN
+interface ShippingOption {
+    method: string;
+    label: string;
+    costCents: number;
+    isFree: boolean;
+}
 
 export default function CheckoutPage() {
-    const router = useRouter();
-    const { items, getSubtotal, clearCart } = useCartStore();
+    const { items, getSubtotal } = useCartStore();
+    const { user, token } = useAuth();
 
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(false);
@@ -26,9 +31,32 @@ export default function CheckoutPage() {
         phone: "", reference: ""
     });
 
-    const [shippingMethod, setShippingMethod] = useState<"STANDARD" | "EXPRESS">("STANDARD");
+    const [shippingMethod, setShippingMethod] = useState<string>("STANDARD");
+    const [shippingOptions, setShippingOptions] = useState<ShippingOption[]>([]);
+    const [shippingLoading, setShippingLoading] = useState(true);
 
     useEffect(() => { setMounted(true); }, []);
+
+    // Pre-llenar email si el usuario tiene sesión
+    useEffect(() => {
+        if (user?.email) {
+            setFormData((prev) => ({ ...prev, email: user.email }));
+        }
+    }, [user]);
+
+    useEffect(() => {
+        if (!mounted) return;
+        const subtotalCents = Math.round(getSubtotal() * 100);
+        const hasDropship = items.some(item => !item.hasLocalStock || item.isCustomized);
+
+        api.get(`/api/v1/shipping/options?subtotalCents=${subtotalCents}&hasDropshipItems=${hasDropship}`)
+            .then((data: { options: ShippingOption[] }) => {
+                setShippingOptions(data.options);
+                setShippingMethod(data.options[0]?.method ?? "STANDARD");
+                setShippingLoading(false);
+            })
+            .catch(() => setShippingLoading(false));
+    }, [mounted]); // eslint-disable-line react-hooks/exhaustive-deps
 
     if (!mounted) return null;
 
@@ -46,17 +74,12 @@ export default function CheckoutPage() {
     }
 
     // Calcular envío
-    const allDropshippable = items.every(item => !item.size || item.id.includes('drop')); // Simplificación
+    const hasDropshipItems = items.some(item => !item.hasLocalStock || item.isCustomized);
     const subtotal = getSubtotal();
-
-    let shippingCost: number;
-    if (shippingMethod === "EXPRESS") {
-        shippingCost = SHIPPING_EXPRESS;
-    } else {
-        // Estándar: gratis si todos son dropshippable, $99 si no
-        shippingCost = allDropshippable ? 0 : SHIPPING_STANDARD;
-    }
-
+    const selectedOption = shippingOptions.find(o => o.method === shippingMethod);
+    const standardOption = shippingOptions.find(o => o.method === 'STANDARD');
+    const expressOption = shippingOptions.find(o => o.method === 'EXPRESS');
+    const shippingCost = (selectedOption?.costCents ?? 0) / 100;
     const total = subtotal + shippingCost;
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -70,30 +93,40 @@ export default function CheckoutPage() {
         setError("");
 
         try {
-            // Verificar que todos los items tienen variantId (items viejos no lo tienen)
-            const missingVariant = items.find(item => !item.variantId);
-            if (missingVariant) {
-                setError("Tu carrito tiene productos antiguos. Por favor vacía tu carrito y agrega los productos de nuevo.");
-                setLoading(false);
-                return;
-            }
-
-            // Mapear items del carrito al formato de la API
+            // Mapear items del carrito al formato de la API (self-healing)
             const orderItems = items.map(item => ({
-                variantId: item.variantId,
+                // Si tiene variantId real, enviarlo. Si no, el backend usará productId+size
+                variantId: item.variantId || undefined,
+                productId: item.productId,
+                size: item.size || undefined,
                 quantity: item.quantity,
                 isPersonalized: item.isCustomized || false,
                 customName: item.customName || null,
                 customNumber: item.customNumber || null,
             }));
 
+            // Determinar el método de envío global según el peor escenario del carrito
+            const hasCustomized = items.some(item => item.isCustomized);
+            const hasDropship   = items.some(item => !item.hasLocalStock);
+
+            let finalShippingMethod: string;
+            if (hasCustomized) {
+                finalShippingMethod = "Estándar Personalizado (20-27 días)";
+            } else if (hasDropship) {
+                finalShippingMethod = "Estándar Internacional (22-25 días)";
+            } else if (shippingMethod === "EXPRESS") {
+                finalShippingMethod = "Express DHL (1-3 días)";
+            } else {
+                finalShippingMethod = "Envío Rápido (3-7 días)";
+            }
+
             // PASO 1: Crear la orden en nuestro backend (queda en PENDING_PAYMENT)
             const result = await api.post("/api/v1/orders", {
                 ...formData,
                 reference: formData.reference || null,
-                shippingMethod,
+                shippingMethod: finalShippingMethod,
                 items: orderItems,
-            });
+            }, token ? { headers: { Authorization: `Bearer ${token}` } } : undefined);
 
             // PASO 2: Crear sesión de Stripe Checkout con los datos reales de la orden
             // ✅ SEGURIDAD: El estado PAID solo cambia vía webhook cuando Stripe confirma el cobro
@@ -102,10 +135,13 @@ export default function CheckoutPage() {
                 {}
             );
 
-            // Limpiar carrito ANTES de redirigir a Stripe
-            clearCart();
+            // PASO 3: Guardar email en sessionStorage para que /confirmation pueda
+            // autenticarse contra el backend y ver los datos personales de la orden.
+            // sessionStorage expira al cerrar la pestaña (no persiste entre sesiones).
+            sessionStorage.setItem('order_email', formData.email);
 
-            // PASO 3: Redirigir al usuario a la página de pago de Stripe
+            // PASO 4: Redirigir al usuario a la página de pago de Stripe
+            // ✅ NO limpiar carrito aquí — se limpia en /confirmation solo si el pago fue exitoso
             // El botón permanece deshabilitado hasta que la página cambia (no hay doble clic posible)
             window.location.href = stripeUrl;
 
@@ -138,6 +174,27 @@ export default function CheckoutPage() {
                     {/* ─── FORMULARIO ─── */}
                     <div className="lg:col-span-7 space-y-10">
                         <form onSubmit={handleCheckout} id="checkout-form" className="space-y-8">
+
+                            {/* BANNER: Invitado vs Sesión */}
+                            {user ? (
+                                <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-xl px-4 py-3 text-sm text-green-800">
+                                    <ShieldCheck className="w-4 h-4 flex-shrink-0 text-green-600" />
+                                    <span>
+                                        Comprando como <strong>{user.email}</strong>.{' '}
+                                        <Link href="/account" className="underline hover:no-underline">Ver mis pedidos</Link>
+                                    </span>
+                                </div>
+                            ) : (
+                                <div className="flex items-center justify-between gap-3 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-700">
+                                    <span>¿Ya tienes cuenta? Inicia sesión para prellenar tus datos.</span>
+                                    <Link
+                                        href={`/login?redirect=/checkout`}
+                                        className="flex-shrink-0 font-bold text-black border border-black rounded-lg px-3 py-1.5 hover:bg-black hover:text-white transition-colors text-xs uppercase tracking-widest"
+                                    >
+                                        Iniciar sesión
+                                    </Link>
+                                </div>
+                            )}
 
                             {/* CONTACTO */}
                             <section className="space-y-4">
@@ -189,41 +246,62 @@ export default function CheckoutPage() {
                             <section className="space-y-4">
                                 <h2 className="text-xl font-heading uppercase tracking-wide">Método de Envío</h2>
                                 <div className="space-y-3">
-                                    <label
-                                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingMethod === "STANDARD"
-                                            ? "border-accent bg-accent/5"
-                                            : "border-th-border/10 bg-theme-card hover:border-th-border/30"
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <input type="radio" name="shipping" value="STANDARD" checked={shippingMethod === "STANDARD"} onChange={() => setShippingMethod("STANDARD")} className="accent-accent" />
-                                            <Package className="w-5 h-5 text-th-secondary" />
-                                            <div>
-                                                <p className="font-bold text-sm">Estándar</p>
-                                                <p className="text-xs text-th-secondary">3-7 días hábiles</p>
-                                            </div>
+                                    {shippingLoading ? (
+                                        <div className="flex items-center gap-2 p-4">
+                                            <Loader2 className="w-4 h-4 animate-spin text-th-secondary" />
+                                            <span className="text-sm text-th-secondary">Calculando opciones de envío...</span>
                                         </div>
-                                        <span className={`font-bold text-sm ${allDropshippable && shippingMethod === "STANDARD" ? "text-accent" : ""}`}>
-                                            {allDropshippable ? "Gratis" : `$${SHIPPING_STANDARD}`}
-                                        </span>
-                                    </label>
+                                    ) : hasDropshipItems ? (
+                                        <label className="flex items-center justify-between p-4 rounded-xl border-2 border-accent bg-accent/5 cursor-default">
+                                            <div className="flex items-center gap-3">
+                                                <input type="radio" checked readOnly className="accent-accent" />
+                                                <Package className="w-5 h-5 text-th-secondary" />
+                                                <div>
+                                                    <p className="font-bold text-sm">Envío Gratuito (Internacional)</p>
+                                                    <p className="text-xs text-th-secondary">Llega del {getDeliveryDates('dropship')}</p>
+                                                </div>
+                                            </div>
+                                            <span className="font-bold text-sm text-accent">Gratis</span>
+                                        </label>
+                                    ) : (
+                                        <>
+                                            <label
+                                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingMethod === "STANDARD"
+                                                    ? "border-black bg-black/5"
+                                                    : "border-th-border/10 bg-theme-card hover:border-th-border/30"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <input type="radio" name="shipping" value="STANDARD" checked={shippingMethod === "STANDARD"} onChange={() => setShippingMethod("STANDARD")} className="accent-black" />
+                                                    <Package className="w-5 h-5 text-th-secondary" />
+                                                    <div>
+                                                        <p className="font-bold text-sm">Estándar</p>
+                                                        <p className="text-xs text-th-secondary">Llega del {getDeliveryDates('fast')}</p>
+                                                    </div>
+                                                </div>
+                                                <span className={`font-bold text-sm ${standardOption?.costCents === 0 ? "text-accent" : ""}`}>
+                                                    {standardOption?.costCents === 0 ? "Gratis" : `$${(standardOption?.costCents ?? 9900) / 100}`}
+                                                </span>
+                                            </label>
 
-                                    <label
-                                        className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingMethod === "EXPRESS"
-                                            ? "border-accent bg-accent/5"
-                                            : "border-th-border/10 bg-theme-card hover:border-th-border/30"
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            <input type="radio" name="shipping" value="EXPRESS" checked={shippingMethod === "EXPRESS"} onChange={() => setShippingMethod("EXPRESS")} className="accent-accent" />
-                                            <Zap className="w-5 h-5 text-amber-500" />
-                                            <div>
-                                                <p className="font-bold text-sm">Express (DHL)</p>
-                                                <p className="text-xs text-th-secondary">1-3 días hábiles</p>
-                                            </div>
-                                        </div>
-                                        <span className="font-bold text-sm">${SHIPPING_EXPRESS}</span>
-                                    </label>
+                                            <label
+                                                className={`flex items-center justify-between p-4 rounded-xl border-2 cursor-pointer transition-all ${shippingMethod === "EXPRESS"
+                                                    ? "border-black bg-black/5"
+                                                    : "border-th-border/10 bg-theme-card hover:border-th-border/30"
+                                                    }`}
+                                            >
+                                                <div className="flex items-center gap-3">
+                                                    <input type="radio" name="shipping" value="EXPRESS" checked={shippingMethod === "EXPRESS"} onChange={() => setShippingMethod("EXPRESS")} className="accent-black" />
+                                                    <Zap className="w-5 h-5 text-amber-500" />
+                                                    <div>
+                                                        <p className="font-bold text-sm">Express (DHL)</p>
+                                                        <p className="text-xs text-th-secondary">1-3 días hábiles</p>
+                                                    </div>
+                                                </div>
+                                                <span className="font-bold text-sm">${(expressOption?.costCents ?? 19900) / 100}</span>
+                                            </label>
+                                        </>
+                                    )}
                                 </div>
                             </section>
 

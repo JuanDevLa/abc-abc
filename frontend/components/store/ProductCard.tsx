@@ -111,14 +111,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
           </>
         )}
 
-        {/* Botón Flotante */}
-        <button
-          onClick={handleAddToCart}
-          className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300 bg-accent-cta text-accent-cta-text text-xs font-bold uppercase py-3 px-6 rounded-full flex items-center gap-2 hover:opacity-90 shadow-lg"
-        >
-          <ShoppingBag className="w-4 h-4" />
-          Agregar
-        </button>
+        {/* Botón Comprar */}
+        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+          <span className="bg-[#F8C37C] text-black text-xs font-bold uppercase py-3 px-6 rounded-full flex items-center gap-2 shadow-lg whitespace-nowrap">
+            Comprar
+          </span>
+        </div>
+
       </div>
 
       {/* 2. INFORMACIÓN */}

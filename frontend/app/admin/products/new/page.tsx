@@ -10,6 +10,8 @@ export default function NewProductPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [clubs, setClubs] = useState<any[]>([]);
+  const [categories, setCategories] = useState<any[]>([]);
+  const [seasons, setSeasons] = useState<any[]>([]);
   const [tags, setTags] = useState<any[]>([]);
   const [error, setError] = useState("");
 
@@ -34,6 +36,7 @@ export default function NewProductPage() {
     description: "",
     brand: "",
     categoryId: "",
+    seasonId: "",
     clubId: "",
     tagIds: [] as string[],
     globalAllowsNameNumber: true,
@@ -61,6 +64,10 @@ export default function NewProductPage() {
     sku: "",
     size: "M",
     type: "STADIUM",
+    sleeve: "SHORT",
+    isPlayerVersion: false,
+    hasLeaguePatch: false,
+    hasChampionsPatch: false,
     stock: 50,
     isDropshippable: true,
     allowsNameNumber: true,
@@ -73,6 +80,10 @@ export default function NewProductPage() {
       sku: "",
       size: "L",
       type: "STADIUM",
+      sleeve: "SHORT",
+      isPlayerVersion: false,
+      hasLeaguePatch: false,
+      hasChampionsPatch: false,
       stock: 50,
       isDropshippable: true,
       allowsNameNumber: true,
@@ -92,14 +103,20 @@ export default function NewProductPage() {
 
   // 1. CARGAR DATOS
   useEffect(() => {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
-
     api.get('/api/v1/clubs')
       .then((data) => { if (Array.isArray(data)) setClubs(data); })
       .catch((err) => console.error(err));
 
     api.get('/api/v1/tags')
       .then((data) => { if (Array.isArray(data)) setTags(data); })
+      .catch((err) => console.error(err));
+
+    api.get('/api/v1/categories')
+      .then((data) => { if (Array.isArray(data)) setCategories(data); })
+      .catch((err) => console.error(err));
+
+    api.get('/api/v1/seasons')
+      .then((data) => { if (Array.isArray(data)) setSeasons(data); })
       .catch((err) => console.error(err));
   }, []);
 
@@ -175,15 +192,17 @@ export default function NewProductPage() {
         compareAtPrice: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) : null,
         clubId: formData.clubId || undefined,
         categoryId: formData.categoryId || undefined,
+        seasonId: formData.seasonId || undefined,
         brand: formData.brand || undefined,
         variants: variants.map((v, i) => ({
           sku: v.sku || `SKU-${Date.now().toString(36)}-${i}`,
           size: v.size,
           color: globalColors[0] || null,
           audience: globalGenders[0] || null,
-          sleeve: "SHORT",
-          hasLeaguePatch: false,
-          hasChampionsPatch: false,
+          sleeve: v.sleeve || "SHORT",
+          isPlayerVersion: v.isPlayerVersion ?? false,
+          hasLeaguePatch: v.hasLeaguePatch ?? false,
+          hasChampionsPatch: v.hasChampionsPatch ?? false,
           allowsNameNumber: formData.globalAllowsNameNumber ? v.allowsNameNumber : false,
           customizationPrice: formData.globalAllowsNameNumber ? Math.round(Number(v.customizationPrice) * 100) : 0,
           priceCents: Math.round(parseFloat(formData.price) * 100),
@@ -438,8 +457,18 @@ export default function NewProductPage() {
                 <input type="text" value={formData.brand} onChange={(e) => setFormData({ ...formData, brand: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 focus:border-indigo-400 outline-none" />
               </div>
               <div>
-                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">ID Categoría</label>
-                <input type="text" required value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 font-mono text-xs focus:border-indigo-400 outline-none" />
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Categoría</label>
+                <select required value={formData.categoryId} onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-xs focus:border-indigo-400 outline-none">
+                  <option value="">Selecciona Categoría</option>
+                  {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1">Temporada (Opcional)</label>
+                <select value={formData.seasonId} onChange={(e) => setFormData({ ...formData, seasonId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 text-slate-800 text-xs focus:border-indigo-400 outline-none">
+                  <option value="">Ninguna / Atemporal</option>
+                  {seasons.map(s => <option key={s.id} value={s.id}>{s.code} ({s.startYear}-{s.endYear})</option>)}
+                </select>
               </div>
             </div>
           </div>
@@ -493,6 +522,42 @@ export default function NewProductPage() {
                         <option value="XL">XL</option>
                         <option value="XXL">XXL</option>
                         <option value="2XL">2XL</option>
+                      </select>
+                    </div>
+
+                    {/* Versión */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Versión</label>
+                      <select value={v.isPlayerVersion ? 'player' : 'fan'} onChange={e => handleVariantChange(v.id, "isPlayerVersion", e.target.value === 'player')} className="w-full bg-slate-100 border border-slate-200 rounded px-2 py-2 text-xs text-slate-800 focus:border-indigo-400 outline-none">
+                        <option value="fan">Fan</option>
+                        <option value="player">Player</option>
+                      </select>
+                    </div>
+
+                    {/* Corte */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Corte</label>
+                      <select value={v.sleeve} onChange={e => handleVariantChange(v.id, "sleeve", e.target.value)} className="w-full bg-slate-100 border border-slate-200 rounded px-2 py-2 text-xs text-slate-800 focus:border-indigo-400 outline-none">
+                        <option value="SHORT">Manga Corta</option>
+                        <option value="LONG">Manga Larga</option>
+                      </select>
+                    </div>
+
+                    {/* Parches */}
+                    <div>
+                      <label className="block text-[10px] font-bold uppercase text-slate-500 mb-1">Parches</label>
+                      <select
+                        value={v.hasLeaguePatch ? 'league' : v.hasChampionsPatch ? 'champions' : 'none'}
+                        onChange={e => {
+                          const val = e.target.value;
+                          handleVariantChange(v.id, "hasLeaguePatch", val === 'league');
+                          handleVariantChange(v.id, "hasChampionsPatch", val === 'champions');
+                        }}
+                        className="w-full bg-slate-100 border border-slate-200 rounded px-2 py-2 text-xs text-slate-800 focus:border-indigo-400 outline-none"
+                      >
+                        <option value="none">Sin Parches</option>
+                        <option value="league">Liga</option>
+                        <option value="champions">Champions</option>
                       </select>
                     </div>
 

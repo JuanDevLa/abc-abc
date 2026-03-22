@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import ProductCarousel from '../components/ProductCarousel';
@@ -5,6 +6,16 @@ import FootballSlider from '../components/FootballSlider';
 import TrendingSection from '../components/TrendingSection';
 import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
+
+export const metadata: Metadata = {
+  title: "Jerseys Raw — Official Gear | Born in the Streets",
+  description: "Jerseys auténticos de fútbol para hombre y mujer. Premier League, La Liga, Bundesliga, Champions League y más. Envíos a toda la República Mexicana.",
+  openGraph: {
+    title: "Jerseys Raw — Official Gear",
+    description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más. Envíos a toda México.",
+    url: "https://jerseysraw.com",
+  },
+};
 
 // Divisor de sección reutilizable
 const SectionDivider = ({ label }: { label: string }) => (
@@ -19,40 +30,25 @@ const SectionDivider = ({ label }: { label: string }) => (
 
 export default function HomePage() {
   return (
-    <>
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        :root, html, body {
-          --bg: 13 13 13 !important;
-          --bg-surface: 28 29 33 !important;
-          --bg-card: 36 36 36 !important;
-          --text-primary: 242 242 242 !important;
-          --text-secondary: 160 160 160 !important;
-          --border: 255 255 255 !important;
-          background-color: rgb(13 13 13) !important;
-          color: rgb(242 242 242) !important;
-        }
-      `}} />
-      <main className="min-h-screen flex flex-col bg-theme-bg text-th-primary transition-colors duration-300">
-        <Navbar />
-        <Hero />
+    <main className="min-h-screen flex flex-col bg-theme-bg text-th-primary transition-colors duration-300">
+      <Navbar />
+      <Hero />
 
-        <div className="-mt-2">
-          <SectionDivider label="Trending Now" />
-        </div>
-        <TrendingSection />
+      <div className="-mt-2">
+        <SectionDivider label="Trending Now" />
+      </div>
+      <TrendingSection />
 
-        <SectionDivider label="Más Vendidos" />
-        <ProductCarousel />
+      <SectionDivider label="Más Vendidos" />
+      <ProductCarousel />
 
-        <SectionDivider label="Clubes de Leyenda" />
-        <FootballSlider />
+      <SectionDivider label="Clubes de Leyenda" />
+      <FootballSlider />
 
-        <SectionDivider label="Suscríbete a Nuestro Catálogo" />
-        <Newsletter />
+      <SectionDivider label="Suscríbete a Nuestro Catálogo" />
+      <Newsletter />
 
-        <Footer />
-      </main>
-    </>
+      <Footer />
+    </main>
   );
 }

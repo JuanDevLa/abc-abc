@@ -4,6 +4,7 @@ import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { sendVerificationEmail } from '../lib/mailer.js';
 import { hashPassword, verifyPassword, generateToken } from '../lib/auth.js';
+import { requireAuth } from '../middlewares/requireAuth.js';
 
 const router = Router();
 
@@ -114,6 +115,20 @@ router.post('/login', async (req, res, next) => {
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
       token,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/v1/auth/me
+router.get('/me', requireAuth, async (req, res, next) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user!.sub },
+      select: { id: true, email: true, name: true, role: true, createdAt: true },
+    });
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    return res.json(user);
   } catch (err) {
     next(err);
   }

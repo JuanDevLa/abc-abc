@@ -2,14 +2,23 @@ import { z } from 'zod';
 
 /* ─── Item dentro de la orden ─── */
 const OrderItemSchema = z.object({
-    variantId: z.string().uuid('variantId inválido'),
+    // Opción A: variantId directo (tallas con variante existente)
+    variantId: z.string().uuid('variantId inválido').optional().nullable(),
+
+    // Opción B: productId + size (self-healing — el backend resolverá/creará la variante)
+    productId: z.string().uuid('productId inválido').optional().nullable(),
+    size: z.string().max(10).optional().nullable(),
+
     quantity: z.coerce.number().int().min(1, 'Cantidad mínima es 1'),
 
     // Personalización (opcional)
     isPersonalized: z.boolean().default(false),
     customName: z.string().max(30, 'Nombre máx 30 caracteres').optional().nullable(),
     customNumber: z.string().max(3, 'Número máx 3 dígitos').optional().nullable(),
-});
+}).refine(
+    (data) => data.variantId || (data.productId && data.size),
+    { message: 'Debe enviar variantId o (productId + size)', path: ['variantId'] }
+);
 
 /* ─── Crear orden ─── */
 export const CreateOrderSchema = z.object({
@@ -28,7 +37,7 @@ export const CreateOrderSchema = z.object({
     reference: z.string().max(120, 'Referencia máx 120 caracteres').optional().nullable(),
 
     // Envío
-    shippingMethod: z.enum(['STANDARD', 'EXPRESS', 'FREE_PROMO']),
+    shippingMethod: z.string().min(1, 'Método de envío requerido'),
 
     // Items
     items: z
@@ -48,4 +57,5 @@ export const UpdateOrderStatusSchema = z.object({
         'DELIVERED',
         'CANCELLED',
     ]),
+    trackingNumber: z.string().max(100).optional().nullable(),
 });

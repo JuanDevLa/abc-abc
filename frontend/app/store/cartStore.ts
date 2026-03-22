@@ -11,6 +11,7 @@ export interface CartItem {
     imageUrl: string;
     quantity: number;
     size?: string;
+    hasLocalStock?: boolean; // NUEVO: Para distinguir "verdes" de dropshipping
     isCustomized?: boolean;
     customName?: string;
     customNumber?: string;

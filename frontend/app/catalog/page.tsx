@@ -1,4 +1,15 @@
+import type { Metadata } from "next";
 import { ProductListing } from "@/components/store/ProductListing";
+
+export const metadata: Metadata = {
+  title: "Catálogo de Jerseys",
+  description: "Explora nuestra colección completa de jerseys auténticos de fútbol. Filtra por equipo, liga, talla y color. Envíos a todo México.",
+  openGraph: {
+    title: "Catálogo de Jerseys — Jerseys Raw",
+    description: "Explora nuestra colección completa de jerseys auténticos de fútbol.",
+    url: "https://jerseysraw.com/catalog",
+  },
+};
 
 // Obtener productos iniciales (Server Component)
 async function getCatalogProducts(search?: string) {

@@ -12,6 +12,10 @@ const AVAILABLE_COLORS = ["Rojo", "Azul", "Blanco", "Negro", "Amarillo"];
 interface VariantRow {
   size: string;
   color: string;
+  sleeve: string;
+  isPlayerVersion: boolean;
+  hasLeaguePatch: boolean;
+  hasChampionsPatch: boolean;
   stock: number;
   priceCents: number;
   compareAtPriceCents: number;
@@ -36,7 +40,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     description: "",
     brand: "",
     gender: "HOMBRE",
-    type: "STADIUM",
     categoryId: "",
     globalAllowsNameNumber: true,
   });
@@ -59,7 +62,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           description: data.description || "",
           brand: data.brand || "",
           gender: data.gender || "HOMBRE",
-          type: data.type || "STADIUM",
           categoryId: data.categoryId || "",
           globalAllowsNameNumber: data.variants?.length > 0
             ? data.variants.every((v: any) => v.allowsNameNumber)
@@ -71,6 +73,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           setVariants(data.variants.map((v: any) => ({
             size: v.size || "M",
             color: v.color || "",
+            sleeve: v.sleeve || "SHORT",
+            isPlayerVersion: v.isPlayerVersion ?? false,
+            hasLeaguePatch: v.hasLeaguePatch ?? false,
+            hasChampionsPatch: v.hasChampionsPatch ?? false,
             stock: v.stock || 0,
             priceCents: v.priceCents || 0,
             compareAtPriceCents: v.compareAtPriceCents || 0,
@@ -93,6 +99,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
     setVariants([...variants, {
       size: "M",
       color: "",
+      sleeve: "SHORT",
+      isPlayerVersion: false,
+      hasLeaguePatch: false,
+      hasChampionsPatch: false,
       stock: 0,
       priceCents: parseFloat(formData.price || "0") * 100,
       compareAtPriceCents: formData.compareAtPrice ? parseFloat(formData.compareAtPrice) * 100 : 0,
@@ -130,6 +140,10 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         payload.variants = variants.map(v => ({
           size: v.size,
           color: v.color || undefined,
+          sleeve: v.sleeve || 'SHORT',
+          isPlayerVersion: v.isPlayerVersion,
+          hasLeaguePatch: v.hasLeaguePatch,
+          hasChampionsPatch: v.hasChampionsPatch,
           stock: v.stock,
           priceCents: v.priceCents,
           compareAtPriceCents: v.compareAtPriceCents || undefined,
@@ -215,14 +229,6 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                 <option value="UNISEX">Unisex</option>
               </select>
             </div>
-            <div>
-              <label className="block text-xs font-bold uppercase text-slate-400 mb-1">Versión</label>
-              <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-indigo-400 outline-none appearance-none transition-all">
-                <option value="STADIUM">Stadium</option>
-                <option value="MATCH">Match</option>
-                <option value="RETRO">Retro</option>
-              </select>
-            </div>
             <div className="md:col-span-3">
               <label className="block text-xs font-bold uppercase text-slate-400 mb-1">ID Categoría</label>
               <input type="text" value={formData.categoryId} onChange={e => setFormData({ ...formData, categoryId: e.target.value })} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 font-mono text-xs focus:border-indigo-400 outline-none transition-all" />
@@ -282,15 +288,49 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Color</label>
-                        <select value={v.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none">
-                          <option value="">— Ninguno —</option>
-                          {AVAILABLE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Versión</label>
+                        <select value={v.isPlayerVersion ? 'player' : 'fan'} onChange={e => updateVariant(idx, 'isPlayerVersion', e.target.value === 'player')} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none">
+                          <option value="fan">Fan</option>
+                          <option value="player">Player</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Corte</label>
+                        <select value={v.sleeve} onChange={e => updateVariant(idx, 'sleeve', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none">
+                          <option value="SHORT">Manga Corta</option>
+                          <option value="LONG">Manga Larga</option>
                         </select>
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Stock Local</label>
                         <input type="number" min="0" value={v.stock} onChange={e => updateVariant(idx, 'stock', parseInt(e.target.value) || 0)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none" />
+                      </div>
+                    </div>
+
+                    {/* Fila 2: Parches, Color, Precio */}
+                    <div className="grid grid-cols-3 gap-3 mt-3">
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Parches</label>
+                        <select
+                          value={v.hasLeaguePatch ? 'league' : v.hasChampionsPatch ? 'champions' : 'none'}
+                          onChange={e => {
+                            const val = e.target.value;
+                            updateVariant(idx, 'hasLeaguePatch', val === 'league');
+                            updateVariant(idx, 'hasChampionsPatch', val === 'champions');
+                          }}
+                          className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none"
+                        >
+                          <option value="none">Sin Parches</option>
+                          <option value="league">Liga</option>
+                          <option value="champions">Champions</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Color</label>
+                        <select value={v.color} onChange={e => updateVariant(idx, 'color', e.target.value)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none">
+                          <option value="">— Ninguno —</option>
+                          {AVAILABLE_COLORS.map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
                       </div>
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Precio (cents)</label>
