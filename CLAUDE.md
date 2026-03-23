@@ -135,7 +135,36 @@ Customization: `OrderItem` supports `customName`/`customNumber`; `ProductVariant
 |-------|--------|
 | F7 — Limpiar deuda técnica frontend (console.error + getDeliveryDates duplicado) | ✅ Completo |
 | F3 — Refactorizar raw fetch() en Register y Account | ✅ Completo |
+| B1 — Password reset (forgot-password + reset-password) | ✅ Completo |
+| B2 — Email notificación admin en nueva orden pagada | ✅ Completo |
+| B3 — Manejar checkout.session.expired (cancelar + restaurar stock) | ✅ Completo |
 | B4 — Limpiar console.log de producción | ✅ Completo |
 | B5 — Rate limiting a POST /orders (10/10min) | ✅ Completo |
 | B6 — Zod validation a POST /reviews | ✅ Completo |
 | B8 — Completar validación de env.ts | ✅ Completo |
+
+### Sprint 2 — Features de usuario faltantes
+
+| Tarea | Estado |
+|-------|--------|
+| F1 — Conectar /app/reviews/page.tsx a la API | ✅ Completo |
+| F2 — Eliminar mock data del Tracking page | ✅ Completo |
+
+### Sprint 3 — Páginas dinámicas y SEO
+
+| Tarea | Estado |
+|-------|--------|
+| F4 — Actualizar sitemap.ts con rutas dinámicas (ligas, equipos, colecciones) | ✅ Completo |
+| F5 — Verificar páginas dinámicas de contenido (leagues, teams, collections) | ✅ Completo |
+| F6 — Verificar Homepage (secciones dinámicas) | ✅ Completo |
+| B7 — Índices de DB faltantes (categoryId en Product, productId en ProductView) | ✅ Completo |
+
+### Sprint 4 — Admin panel completo
+
+| Tarea | Estado |
+|-------|--------|
+| FS1 — Admin CRUD de Productos (new + edit) | ✅ Verificado (ya completo) |
+| FS2 — Admin CRUD de Órdenes (status transitions + tracking number) | ✅ Completo |
+| FS3 — Admin CRUD de Clubs, Leagues, Tags | ✅ Verificado (ya completo) |
+| FS4 — Admin moderación de Reviews | ✅ Verificado (ya completo) |
+| FS5 — Página de cuenta de usuario con historial de órdenes | ✅ Verificado (ya completo desde Sprint 2) |

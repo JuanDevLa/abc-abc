@@ -14,8 +14,43 @@ async function getProducts(): Promise<{ id: string; updatedAt?: string }[]> {
   }
 }
 
+async function getLeagues(): Promise<{ slug: string }[]> {
+  try {
+    const res = await fetch(`${API}/api/v1/leagues`, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+async function getClubs(): Promise<{ slug: string }[]> {
+  try {
+    const res = await fetch(`${API}/api/v1/clubs`, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
+async function getTags(): Promise<{ slug: string }[]> {
+  try {
+    const res = await fetch(`${API}/api/v1/tags`, { next: { revalidate: 3600 } });
+    if (!res.ok) return [];
+    return res.json();
+  } catch {
+    return [];
+  }
+}
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const products = await getProducts();
+  const [products, leagues, clubs, tags] = await Promise.all([
+    getProducts(),
+    getLeagues(),
+    getClubs(),
+    getTags(),
+  ]);
 
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: BASE,                      lastModified: new Date(), changeFrequency: "daily",   priority: 1.0 },
@@ -36,5 +71,26 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.8,
   }));
 
-  return [...staticRoutes, ...productRoutes];
+  const leagueRoutes: MetadataRoute.Sitemap = leagues.map((l) => ({
+    url: `${BASE}/leagues/${l.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const teamRoutes: MetadataRoute.Sitemap = clubs.map((c) => ({
+    url: `${BASE}/teams/${c.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.7,
+  }));
+
+  const collectionRoutes: MetadataRoute.Sitemap = tags.map((t) => ({
+    url: `${BASE}/collections/${t.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "weekly" as const,
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...productRoutes, ...leagueRoutes, ...teamRoutes, ...collectionRoutes];
 }

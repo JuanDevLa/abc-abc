@@ -144,6 +144,7 @@ model Product {
   @@index([clubId, seasonId, jerseyStyle, createdAt])
   @@index([slug])
   @@index([name])
+  @@index([categoryId])
 }
 
 model ProductImage {
@@ -384,4 +385,5 @@ model ProductView {
   createdAt DateTime @default(now())
 
   @@index([productId, createdAt])
+  @@index([productId])
 }

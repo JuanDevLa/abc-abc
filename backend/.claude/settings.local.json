@@ -3,7 +3,8 @@
     "allow": [
       "Bash(rtk npm:*)",
       "Bash(npm run:*)",
-      "Skill(update-config)"
+      "Skill(update-config)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

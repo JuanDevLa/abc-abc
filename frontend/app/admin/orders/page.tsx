@@ -41,6 +41,7 @@ export default function AdminOrdersPage() {
     const [fulfillmentFilter, setFulfillmentFilter] = useState<"" | "LOCAL" | "DROPSHIPPING">(""); // client-side
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [changingStatus, setChangingStatus] = useState<string | null>(null);
+    const [trackingInputs, setTrackingInputs] = useState<Record<string, string>>({});
 
     const fetchOrders = async (pageNum: number, status?: string) => {
         setLoading(true);
@@ -66,10 +67,13 @@ export default function AdminOrdersPage() {
         return STATUS_FLOW[idx + 1];
     };
 
-    const handleStatusChange = async (orderId: string, newStatus: string) => {
+    const handleStatusChange = async (orderId: string, newStatus: string, trackingNumber?: string) => {
         setChangingStatus(orderId);
         try {
-            await api.put(`/api/v1/orders/${orderId}/status`, { status: newStatus }, { auth: true });
+            const body: { status: string; trackingNumber?: string } = { status: newStatus };
+            if (trackingNumber?.trim()) body.trackingNumber = trackingNumber.trim();
+            await api.put(`/api/v1/orders/${orderId}/status`, body, { auth: true });
+            setTrackingInputs(prev => { const next = { ...prev }; delete next[orderId]; return next; });
             fetchOrders(page, statusFilter);
         } catch {
             alert("Error al cambiar status");
@@ -230,27 +234,46 @@ export default function AdminOrdersPage() {
                                                 <p>{order.shippingMethod === "EXPRESS" ? "Express DHL (1-3 días)" : "Estándar (3-7 días)"}</p>
                                                 <p>{order.shippingCents === 0 ? "Gratis" : formatPrice(order.shippingCents)}</p>
                                                 <p className="mt-1 font-bold">Tel: {order.phone}</p>
+                                                {order.trackingNumber && (
+                                                    <p className="mt-1">Tracking: <span className="font-mono text-indigo-500">{order.trackingNumber}</span></p>
+                                                )}
                                             </div>
                                         </div>
 
                                         {/* Status change */}
                                         {nextStatus && order.status !== "CANCELLED" && (
-                                            <div className="flex items-center gap-3 pt-2 border-t border-slate-200">
-                                                <button
-                                                    onClick={() => handleStatusChange(order.id, nextStatus)}
-                                                    disabled={changingStatus === order.id}
-                                                    className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 transition-colors"
-                                                >
-                                                    {changingStatus === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3" />}
-                                                    Mover a: {STATUS_CONFIG[nextStatus]?.label}
-                                                </button>
-                                                <button
-                                                    onClick={() => handleStatusChange(order.id, "CANCELLED")}
-                                                    disabled={changingStatus === order.id}
-                                                    className="text-xs text-rose-400 hover:text-rose-600 font-bold disabled:opacity-50 transition-colors"
-                                                >
-                                                    Cancelar
-                                                </button>
+                                            <div className="flex flex-col gap-3 pt-2 border-t border-slate-200">
+                                                {nextStatus === "SHIPPED" && (
+                                                    <div>
+                                                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">
+                                                            Número de rastreo
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ej: 1Z999AA10123456784"
+                                                            value={trackingInputs[order.id] ?? ""}
+                                                            onChange={e => setTrackingInputs(prev => ({ ...prev, [order.id]: e.target.value }))}
+                                                            className="w-full max-w-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-sm font-mono text-slate-700 focus:border-indigo-400 outline-none"
+                                                        />
+                                                    </div>
+                                                )}
+                                                <div className="flex items-center gap-3">
+                                                    <button
+                                                        onClick={() => handleStatusChange(order.id, nextStatus, trackingInputs[order.id])}
+                                                        disabled={changingStatus === order.id}
+                                                        className="bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-bold px-4 py-2 rounded-lg flex items-center gap-2 disabled:opacity-50 transition-colors"
+                                                    >
+                                                        {changingStatus === order.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <ArrowRight className="w-3 h-3" />}
+                                                        Mover a: {STATUS_CONFIG[nextStatus]?.label}
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleStatusChange(order.id, "CANCELLED")}
+                                                        disabled={changingStatus === order.id}
+                                                        className="text-xs text-rose-400 hover:text-rose-600 font-bold disabled:opacity-50 transition-colors"
+                                                    >
+                                                        Cancelar
+                                                    </button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

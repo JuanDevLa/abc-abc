@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { api } from "@/lib/api";
 import Link from "next/link";
 import {
   Package,
@@ -30,37 +31,6 @@ interface TrackingData {
   estimatedDelivery: string | null;
   events: TrackingEvent[];
 }
-
-// ─── MOCK DATA ────────────────────────────────────────────────────────────────
-const MOCK_DATA: TrackingData = {
-  trackingNumber: "JR123456789",
-  carrier: "Logística Estándar",
-  status: "InTransit",
-  subStatus: "TransitToDestination",
-  estimatedDelivery: "2026-03-27",
-  events: [
-    {
-      time: "2026-03-16T23:45:00-06:00",
-      description: "Llegada al Aeropuerto de Destino en progreso",
-      location: "Aeropuerto Internacional",
-    },
-    {
-      time: "2026-03-15T14:20:00-06:00",
-      description: "Enviado al Operador Aéreo",
-      location: "Centro Logístico de Origen",
-    },
-    {
-      time: "2026-03-14T09:15:00-06:00",
-      description: "Pedido Procesado",
-      location: "Almacén Principal",
-    },
-    {
-      time: "2026-03-13T16:30:00-06:00",
-      description: "Información de envío recibida por el transportista",
-      location: "Almacén Principal",
-    },
-  ],
-};
 
 // ─── STATUS → STEP INDEX MAPPING ─────────────────────────────────────────────
 const STATUS_TO_STEP: Record<string, number> = {
@@ -363,32 +333,17 @@ export default function TrackingClient() {
     setMounted(true);
   }, []);
 
-  const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
-
   async function handleTrack(e: React.FormEvent) {
     e.preventDefault();
     const trimmed = query.trim();
     if (!trimmed) return;
-
-    // Demo mode
-    if (trimmed.toUpperCase() === "DEMO") {
-      setData(MOCK_DATA);
-      setError(null);
-      return;
-    }
 
     setLoading(true);
     setError(null);
     setData(null);
 
     try {
-      const res = await fetch(`${API_BASE}/api/v1/tracking`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trackingNumber: trimmed }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Error al rastrear");
+      const json = await api.post<TrackingData>("/api/v1/tracking", { trackingNumber: trimmed });
       setData(json);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -466,7 +421,7 @@ export default function TrackingClient() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Ej: JR123456789 — o escribe DEMO"
+              placeholder="Ej: JR123456789"
               className="flex-1 bg-transparent px-5 py-4 text-sm text-white placeholder:text-white/25 outline-none"
             />
             <button
@@ -489,20 +444,6 @@ export default function TrackingClient() {
               {loading ? "..." : "Buscar"}
             </button>
           </div>
-          <p className="text-center text-white/22 text-[11px] mt-8">
-            ¿No tienes un número? Escribe{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setQuery("DEMO");
-              }}
-              className="font-mono underline underline-offset-2 transition-opacity hover:opacity-80"
-              style={{ color: "rgba(248,195,124,0.65)" }}
-            >
-              DEMO
-            </button>{" "}
-            para ver un ejemplo
-          </p>
         </form>
       </section>
 

@@ -5,7 +5,7 @@
 import { Router, Request, Response } from 'express';
 import Stripe from 'stripe';
 import { prisma } from '../lib/prisma.js';
-import { sendOrderConfirmationEmail } from '../lib/mailer.js';
+import { sendOrderConfirmationEmail, sendAdminOrderNotification } from '../lib/mailer.js';
 
 const router = Router();
 
@@ -86,17 +86,50 @@ router.post(
             return res.status(500).json({ error: 'Error al actualizar la orden' });
           }
 
-          // Enviar email de confirmación (fire-and-forget — no bloquea la respuesta a Stripe)
+          // Enviar emails (fire-and-forget — no bloquea la respuesta a Stripe)
           sendOrderConfirmationEmail(paidOrder).catch((emailErr) => {
             console.error(`⚠️  Email de confirmación fallido para orden ${orderNumber}:`, emailErr);
+          });
+          sendAdminOrderNotification(paidOrder).catch((emailErr) => {
+            console.error(`⚠️  Email de notificación admin fallido para orden ${orderNumber}:`, emailErr);
           });
 
           break;
         }
 
-        // Sesión expirada
+        // Sesión expirada — cancelar orden y restaurar stock LOCAL
         case 'checkout.session.expired': {
           const session = event.data.object as Stripe.Checkout.Session;
+          const expiredOrderNumber = session.metadata?.orderNumber;
+          if (!expiredOrderNumber) break;
+
+          const expiredOrder = await prisma.order.findUnique({
+            where: { orderNumber: expiredOrderNumber },
+            include: { items: true },
+          });
+
+          // Si ya fue procesada (pagada, cancelada, etc.) no hacer nada
+          if (!expiredOrder || expiredOrder.status !== 'PENDING_PAYMENT') break;
+
+          try {
+            await prisma.$transaction(async (tx) => {
+              for (const item of expiredOrder.items) {
+                if (!item.isDropshippable && item.variantId) {
+                  await tx.productVariant.update({
+                    where: { id: item.variantId },
+                    data: { stock: { increment: item.quantity } },
+                  });
+                }
+              }
+              await tx.order.update({
+                where: { id: expiredOrder.id },
+                data: { status: 'CANCELLED' },
+              });
+            });
+          } catch (expiredErr) {
+            console.error(`❌ Error cancelando orden expirada ${expiredOrderNumber}:`, expiredErr);
+          }
+
           break;
         }
 

@@ -210,6 +210,62 @@ export async function sendOrderConfirmationEmail(order: OrderEmailData) {
   }
 }
 
+// ─── Email de notificación al admin — nueva orden pagada ───────────────────
+export async function sendAdminOrderNotification(order: OrderEmailData) {
+  const adminEmail = process.env.ADMIN_EMAIL;
+  if (!adminEmail) return; // No configurado — silenciosamente ignorar
+
+  const itemsList = order.items
+    .map(i => `• ${i.productName} × ${i.quantity} — ${formatMXN(i.unitPriceCents * i.quantity)}`)
+    .join('\n');
+
+  const html = `
+    <div style="font-family:system-ui,Segoe UI,Roboto,Arial;max-width:600px;">
+      <h2 style="color:#F8C37C;">🛒 Nueva orden pagada: ${order.orderNumber}</h2>
+      <p><strong>Cliente:</strong> ${order.firstName} ${order.lastName} (${order.email})</p>
+      <p><strong>Envío a:</strong> ${order.address}, ${order.city}, ${order.state} ${order.zipCode}</p>
+      <p><strong>Método de envío:</strong> ${order.shippingMethod}</p>
+      <hr/>
+      <pre style="background:#f5f5f5;padding:12px;border-radius:4px;">${itemsList}</pre>
+      <hr/>
+      <p><strong>Subtotal:</strong> ${formatMXN(order.subtotalCents)}</p>
+      <p><strong>Envío:</strong> ${order.shippingCents === 0 ? 'Gratis' : formatMXN(order.shippingCents)}</p>
+      <p style="font-size:18px;"><strong>Total: ${formatMXN(order.totalCents)}</strong></p>
+    </div>
+  `;
+
+  await mailer.sendMail({
+    from: SMTP_FROM || 'no-reply@jerseysraw.com',
+    to: adminEmail,
+    subject: `🛒 Nueva orden ${order.orderNumber} — ${formatMXN(order.totalCents)}`,
+    html,
+  });
+}
+
+export async function sendPasswordResetEmail(to: string, code: string) {
+  const html = `
+    <div style="font-family:system-ui,Segoe UI,Roboto,Arial">
+      <h2>Restablecer contraseña</h2>
+      <p>Recibimos una solicitud para restablecer la contraseña de tu cuenta.</p>
+      <p>Tu código de verificación es:</p>
+      <p style="font-size:24px;font-weight:700;letter-spacing:4px">${code}</p>
+      <p>Este código expira en 10 minutos.</p>
+      <p>Si no solicitaste esto, puedes ignorar este correo.</p>
+    </div>
+  `;
+
+  await mailer.sendMail({
+    from: SMTP_FROM || 'no-reply@jerseysraw.com',
+    to,
+    subject: 'Restablece tu contraseña — Jerseys Raw',
+    html,
+  });
+
+  if (useConsole || NODE_ENV === 'development') {
+    console.log(`[MAIL] Reset de contraseña enviado a ${to} — código: ${code}`);
+  }
+}
+
 export async function sendVerificationEmail(to: string, code: string) {
   const html = `
     <div style="font-family:system-ui,Segoe UI,Roboto,Arial">

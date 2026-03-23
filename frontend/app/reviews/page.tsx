@@ -1,38 +1,38 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import {
   Star,
-  Camera,
   X,
   PenLine,
   ArrowLeft,
   Send,
-  ImagePlus,
   ChevronRight,
 } from "lucide-react";
 
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
+
 // ══════════════════════════════════════════════════════════════
-// TIPOS — Usar cuando se conecte al API
+// TIPOS
 // ══════════════════════════════════════════════════════════════
 
 interface ReviewProduct {
+  id: string;
   name: string;
-  imageUrl: string;
   slug: string;
-  teamColors: string[]; // Solo para mockup (placeholder de imagen)
+  imageUrl: string | null;
 }
 
 interface Review {
   id: string;
   name: string;
+  image: string | null;
   rating: number;
   comment: string;
-  hasPhoto: boolean;
-  verified: boolean;
   createdAt: string;
-  product: ReviewProduct;
+  productId: string;
+  product: ReviewProduct | null;
 }
 
 interface ReviewStats {
@@ -40,115 +40,6 @@ interface ReviewStats {
   total: number;
   byRating: Record<number, number>;
 }
-
-// ══════════════════════════════════════════════════════════════
-// MOCK DATA — Reemplazar con llamadas al API
-// ══════════════════════════════════════════════════════════════
-
-const MOCK_STATS: ReviewStats = {
-  average: 4.8,
-  total: 127,
-  byRating: { 5: 89, 4: 24, 3: 8, 2: 4, 1: 2 },
-};
-
-const MOCK_REVIEWS: Review[] = [
-  {
-    id: "r1",
-    name: "Carlos Mendoza",
-    rating: 5,
-    comment:
-      "La mejor jersey que he comprado en mi vida. La calidad del material es increíble — se siente como las originales que usaban los jugadores. Los detalles del escudo y los patrocinadores están perfectamente bordados. Llegó en 3 días a CDMX con empaque premium. 100% recomendado.",
-    hasPhoto: true,
-    verified: true,
-    createdAt: "15 Ene 2024",
-    product: {
-      name: "Manchester United 2008 Champions League Final",
-      imageUrl: "",
-      slug: "prod_1",
-      teamColors: ["#DA291C", "#000000"],
-    },
-  },
-  {
-    id: "r2",
-    name: "Ana García López",
-    rating: 5,
-    comment:
-      "Hermosa jersey del Barça. Mi novio quedó encantado con el regalo de cumpleaños. El bordado del escudo es espectacular y la tela es súper cómoda para usar todo el día.",
-    hasPhoto: false,
-    verified: true,
-    createdAt: "10 Ene 2024",
-    product: {
-      name: "FC Barcelona 2024/25 Home Kit",
-      imageUrl: "",
-      slug: "prod_2",
-      teamColors: ["#A50044", "#004D98"],
-    },
-  },
-  {
-    id: "r3",
-    name: "Roberto Sánchez",
-    rating: 4,
-    comment:
-      "Muy buena calidad. El único detalle es que tardó un día más de lo esperado, pero la jersey está increíble. El azul es exacto al de la temporada.",
-    hasPhoto: true,
-    verified: true,
-    createdAt: "8 Ene 2024",
-    product: {
-      name: "Real Madrid 2023/24 Away Kit",
-      imageUrl: "",
-      slug: "prod_3",
-      teamColors: ["#00529F", "#FEBE10"],
-    },
-  },
-  {
-    id: "r4",
-    name: "María Fernanda López",
-    rating: 5,
-    comment:
-      "¡Increíble! La jersey del Milan es hermosísima. Calidad premium en cada detalle. Volveré a comprar sin duda alguna.",
-    hasPhoto: false,
-    verified: true,
-    createdAt: "5 Ene 2024",
-    product: {
-      name: "AC Milan 2024/25 Home",
-      imageUrl: "",
-      slug: "prod_4",
-      teamColors: ["#FB090B", "#000000"],
-    },
-  },
-  {
-    id: "r5",
-    name: "Diego Torres",
-    rating: 3,
-    comment:
-      "La jersey está bien pero esperaba mejor acabado en las costuras laterales. El diseño es bonito.",
-    hasPhoto: false,
-    verified: true,
-    createdAt: "2 Ene 2024",
-    product: {
-      name: "Juventus 2024/25 Third Kit",
-      imageUrl: "",
-      slug: "prod_5",
-      teamColors: ["#000000", "#D4AF37"],
-    },
-  },
-  {
-    id: "r6",
-    name: "Fernando Ruiz Hernández",
-    rating: 5,
-    comment:
-      "Pedí la de Messi #10 y llegó perfecta. Los números y el nombre están excelentemente estampados, no se van a despegar ni en 100 lavadas. Se nota que es calidad premium. Mi nueva jersey favorita para ir al estadio.",
-    hasPhoto: true,
-    verified: true,
-    createdAt: "1 Ene 2024",
-    product: {
-      name: "Inter Miami 2024 Messi #10",
-      imageUrl: "",
-      slug: "prod_6",
-      teamColors: ["#F7B5CD", "#231F20"],
-    },
-  },
-];
 
 // ══════════════════════════════════════════════════════════════
 // SUB-COMPONENTES
@@ -234,28 +125,17 @@ function Avatar({ name }: { name: string }) {
   );
 }
 
-/** Mini-card del producto comprado — rectángulo ~6×12 */
+/** Mini-card del producto comprado */
 function ProductMiniCard({ product }: { product: ReviewProduct }) {
   return (
     <Link
-      href={`/product/${product.slug}`}
+      href={`/product/${product.id}`}
       className="group/product flex items-center gap-3 h-24 w-full max-w-xs rounded-lg border border-th-border/10 bg-theme-surface/50 overflow-hidden transition-all hover:border-accent/30 hover:shadow-lg hover:shadow-accent/5"
     >
-      {/* Placeholder de imagen del jersey (colores del equipo) */}
-      <div
-        className="h-full w-20 flex-shrink-0 relative overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${product.teamColors[0]}, ${product.teamColors[1] || product.teamColors[0]})`,
-        }}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-white/50 text-2xl font-heading tracking-tighter">
-            JR
-          </span>
-        </div>
+      <div className="h-full w-20 flex-shrink-0 flex items-center justify-center bg-th-border/10">
+        <span className="text-th-secondary/40 text-xs font-bold">JR</span>
       </div>
 
-      {/* Nombre del producto */}
       <div className="flex-1 pr-3 min-w-0">
         <p className="text-[11px] text-th-secondary uppercase tracking-wider mb-0.5">
           Producto comprado
@@ -275,31 +155,6 @@ function ProductMiniCard({ product }: { product: ReviewProduct }) {
   );
 }
 
-/** Placeholder visual de foto del cliente */
-function CustomerPhoto({ onClick }: { onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="relative w-full h-48 rounded-lg overflow-hidden border border-th-border/10 group/photo cursor-zoom-in"
-      aria-label="Expandir foto del cliente"
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-accent/10 via-theme-surface to-accent/5 flex items-center justify-center">
-        <div className="text-center">
-          <Camera size={32} className="text-accent/40 mx-auto mb-1" />
-          <span className="text-xs text-th-secondary">
-            Foto del cliente
-          </span>
-        </div>
-      </div>
-      <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover/photo:opacity-100">
-        <span className="text-white text-xs bg-black/50 px-3 py-1.5 rounded-full backdrop-blur-sm">
-          Click para expandir
-        </span>
-      </div>
-    </button>
-  );
-}
-
 // ══════════════════════════════════════════════════════════════
 // PÁGINA PRINCIPAL — /reviews
 // ══════════════════════════════════════════════════════════════
@@ -307,24 +162,95 @@ function CustomerPhoto({ onClick }: { onClick: () => void }) {
 export default function ReviewsPage() {
   const [activeFilter, setActiveFilter] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [lightbox, setLightbox] = useState(false);
+  const [lightboxImg, setLightboxImg] = useState<string | null>(null);
   const [formRating, setFormRating] = useState(0);
 
-  // Filtrar + ordenamiento inteligente (foto → 5★ → texto largo)
-  const filteredReviews = useMemo(() => {
-    const base = activeFilter
-      ? MOCK_REVIEWS.filter((r) => r.rating === activeFilter)
-      : MOCK_REVIEWS;
+  // Data state
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [stats, setStats] = useState<ReviewStats | null>(null);
 
-    return [...base].sort((a, b) => {
-      if (a.hasPhoto && !b.hasPhoto) return -1;
-      if (!a.hasPhoto && b.hasPhoto) return 1;
+  // Form state
+  const [formName, setFormName] = useState('');
+  const [formComment, setFormComment] = useState('');
+  const [formProductId, setFormProductId] = useState('');
+  const [products, setProducts] = useState<{ id: string; name: string }[]>([]);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  // Fetch reviews + stats cuando cambia el filtro
+  useEffect(() => {
+    const params = activeFilter ? `?status=APPROVED&stars=${activeFilter}` : '?status=APPROVED';
+    Promise.all([
+      fetch(`${API_BASE}/api/v1/reviews${params}`).then((r) => r.json()),
+      fetch(`${API_BASE}/api/v1/reviews/stats`).then((r) => r.json()),
+    ])
+      .then(([reviewsData, statsData]) => {
+        setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+        setStats(statsData);
+      })
+      .catch(() => {});
+  }, [activeFilter]);
+
+  // Abrir form + fetch productos para el selector
+  const handleOpenForm = () => {
+    setShowForm(true);
+    setSubmitted(false);
+    if (products.length === 0) {
+      fetch(`${API_BASE}/api/v1/products?limit=200`)
+        .then((r) => r.json())
+        .then((data) => {
+          const list = data?.items ?? data;
+          setProducts(
+            Array.isArray(list)
+              ? list.map((p: any) => ({ id: p.id, name: p.name }))
+              : []
+          );
+        })
+        .catch(() => {});
+    }
+  };
+
+  // Enviar reseña
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formProductId || !formName || !formRating) return;
+    setSubmitting(true);
+    try {
+      await fetch(`${API_BASE}/api/v1/reviews`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productId: formProductId,
+          name: formName.trim(),
+          rating: formRating,
+          comment: formComment.trim(),
+        }),
+      });
+      setSubmitted(true);
+      setFormName('');
+      setFormComment('');
+      setFormProductId('');
+      setFormRating(0);
+    } catch {
+      // silently fail
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Ordenamiento inteligente: foto → 5★ → texto largo
+  const filteredReviews = useMemo(() => {
+    return [...reviews].sort((a, b) => {
+      if (a.image && !b.image) return -1;
+      if (!a.image && b.image) return 1;
       if (a.rating !== b.rating) return b.rating - a.rating;
       return b.comment.length - a.comment.length;
     });
-  }, [activeFilter]);
+  }, [reviews]);
 
-  const maxRatingCount = Math.max(...Object.values(MOCK_STATS.byRating));
+  const maxRatingCount = stats
+    ? Math.max(...Object.values(stats.byRating), 1)
+    : 1;
 
   return (
     <div className="min-h-screen bg-theme-bg">
@@ -346,13 +272,13 @@ export default function ReviewsPage() {
           </h1>
 
           <div className="flex items-center gap-4 mt-6">
-            <Stars rating={Math.round(MOCK_STATS.average)} size={22} />
+            <Stars rating={Math.round(stats?.average ?? 0)} size={22} />
             <span className="text-2xl font-bold text-th-primary tabular-nums">
-              {MOCK_STATS.average}
+              {stats?.average ?? '—'}
             </span>
             <span className="text-th-secondary/40">|</span>
             <span className="text-th-secondary text-sm">
-              {MOCK_STATS.total} reseñas verificadas
+              {stats?.total ?? 0} reseñas verificadas
             </span>
           </div>
         </div>
@@ -370,7 +296,7 @@ export default function ReviewsPage() {
 
               <div className="space-y-2">
                 {[5, 4, 3, 2, 1].map((star) => {
-                  const count = MOCK_STATS.byRating[star] || 0;
+                  const count = stats?.byRating[star] ?? 0;
                   const pct =
                     maxRatingCount > 0
                       ? (count / maxRatingCount) * 100
@@ -428,7 +354,7 @@ export default function ReviewsPage() {
 
               {/* CTA — Desktop */}
               <button
-                onClick={() => setShowForm(true)}
+                onClick={handleOpenForm}
                 className="hidden lg:flex w-full items-center justify-center gap-2 bg-accent-cta text-accent-cta-text font-bold text-sm uppercase tracking-wide py-3.5 px-6 rounded-full hover:opacity-90 transition-opacity shadow-lg"
               >
                 <PenLine size={16} />
@@ -442,7 +368,7 @@ export default function ReviewsPage() {
             <p className="text-sm text-th-secondary mb-6">
               {activeFilter
                 ? `${filteredReviews.length} reseña${filteredReviews.length !== 1 ? "s" : ""} de ${activeFilter} estrella${activeFilter !== 1 ? "s" : ""}`
-                : `Mostrando ${MOCK_STATS.total} reseñas`}
+                : `Mostrando ${stats?.total ?? 0} reseñas`}
             </p>
 
             <div className="space-y-5">
@@ -459,16 +385,16 @@ export default function ReviewsPage() {
                         <span className="font-semibold text-th-primary text-sm">
                           {review.name}
                         </span>
-                        {review.verified && (
-                          <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
-                            Verificado
-                          </span>
-                        )}
+                        <span className="text-[10px] bg-accent/10 text-accent px-2 py-0.5 rounded-full font-medium whitespace-nowrap">
+                          Verificado
+                        </span>
                       </div>
                       <div className="flex items-center gap-2 mt-0.5">
                         <Stars rating={review.rating} size={13} />
                         <span className="text-xs text-th-secondary">
-                          {review.createdAt}
+                          {new Date(review.createdAt).toLocaleDateString('es-MX', {
+                            day: 'numeric', month: 'short', year: 'numeric',
+                          })}
                         </span>
                       </div>
                     </div>
@@ -480,38 +406,53 @@ export default function ReviewsPage() {
                   </p>
 
                   {/* Foto del cliente (si tiene) */}
-                  {review.hasPhoto && (
+                  {review.image && (
                     <div className="mt-4">
-                      <CustomerPhoto
-                        onClick={() => setLightbox(true)}
-                      />
+                      <button
+                        onClick={() => setLightboxImg(review.image!)}
+                        className="relative w-full h-48 rounded-lg overflow-hidden border border-th-border/10 cursor-zoom-in group/photo"
+                        aria-label="Expandir foto del cliente"
+                      >
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={review.image}
+                          alt={`Foto de ${review.name}`}
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover/photo:bg-black/10 transition-colors" />
+                      </button>
                     </div>
                   )}
 
                   {/* Mini-card del producto */}
-                  <div className="mt-4 pt-4 border-t border-th-border/5">
-                    <ProductMiniCard product={review.product} />
-                  </div>
+                  {review.product && (
+                    <div className="mt-4 pt-4 border-t border-th-border/5">
+                      <ProductMiniCard product={review.product} />
+                    </div>
+                  )}
                 </article>
               ))}
             </div>
 
-            {filteredReviews.length === 0 && (
+            {filteredReviews.length === 0 && stats !== null && (
               <div className="text-center py-16">
                 <Star
                   size={48}
                   className="text-th-secondary/20 mx-auto mb-3"
                 />
                 <p className="text-th-secondary">
-                  No hay reseñas con {activeFilter} estrella
-                  {activeFilter !== 1 ? "s" : ""}.
+                  {activeFilter
+                    ? `No hay reseñas con ${activeFilter} estrella${activeFilter !== 1 ? "s" : ""}.`
+                    : 'Aún no hay reseñas.'}
                 </p>
-                <button
-                  onClick={() => setActiveFilter(null)}
-                  className="mt-3 text-sm text-accent hover:text-accent-hover transition-colors"
-                >
-                  Ver todas las reseñas
-                </button>
+                {activeFilter && (
+                  <button
+                    onClick={() => setActiveFilter(null)}
+                    className="mt-3 text-sm text-accent hover:text-accent-hover transition-colors"
+                  >
+                    Ver todas las reseñas
+                  </button>
+                )}
               </div>
             )}
           </main>
@@ -521,7 +462,7 @@ export default function ReviewsPage() {
       {/* ═══ FLOATING CTA — Mobile ═══ */}
       <div className="fixed bottom-6 left-1/2 -translate-x-1/2 lg:hidden z-40">
         <button
-          onClick={() => setShowForm(true)}
+          onClick={handleOpenForm}
           className="flex items-center gap-2 bg-accent-cta text-accent-cta-text font-bold text-sm uppercase tracking-wide py-3.5 px-8 rounded-full shadow-2xl hover:opacity-90 transition-opacity"
         >
           <PenLine size={16} />
@@ -548,133 +489,130 @@ export default function ReviewsPage() {
               <X size={20} />
             </button>
 
-            <h2 className="text-3xl font-heading uppercase italic text-th-primary tracking-tight mb-1">
-              Escribe tu reseña
-            </h2>
-            <p className="text-sm text-th-secondary mb-6">
-              Tu opinión será revisada por un administrador antes de
-              publicarse.
-            </p>
-
-            <form
-              className="space-y-5"
-              onSubmit={(e) => {
-                e.preventDefault();
-                // TODO: POST /api/v1/reviews
-                setShowForm(false);
-              }}
-            >
-              {/* Selector de producto */}
-              <div>
-                <label className="block text-sm font-medium text-th-primary mb-1.5">
-                  Producto comprado *
-                </label>
-                <select className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all appearance-none">
-                  <option value="">Seleccionar producto...</option>
-                  <option>Manchester United 2008 Champions League</option>
-                  <option>FC Barcelona 2024/25 Home Kit</option>
-                  <option>Real Madrid 2023/24 Away Kit</option>
-                  <option>AC Milan 2024/25 Home</option>
-                  <option>Inter Miami 2024 Messi #10</option>
-                </select>
+            {submitted ? (
+              <div className="text-center py-8">
+                <p className="text-4xl mb-4">✅</p>
+                <h3 className="text-xl font-bold text-th-primary mb-2">
+                  ¡Gracias!
+                </h3>
+                <p className="text-sm text-th-secondary">
+                  Tu reseña fue enviada y será publicada tras ser revisada.
+                </p>
+                <button
+                  onClick={() => setShowForm(false)}
+                  className="mt-6 text-sm text-accent hover:opacity-70 transition-opacity underline underline-offset-4"
+                >
+                  Cerrar
+                </button>
               </div>
+            ) : (
+              <>
+                <h2 className="text-3xl font-heading uppercase italic text-th-primary tracking-tight mb-1">
+                  Escribe tu reseña
+                </h2>
+                <p className="text-sm text-th-secondary mb-6">
+                  Tu opinión será revisada por un administrador antes de publicarse.
+                </p>
 
-              {/* Nombre */}
-              <div>
-                <label className="block text-sm font-medium text-th-primary mb-1.5">
-                  Tu nombre *
-                </label>
-                <input
-                  type="text"
-                  placeholder="Ej: Carlos M."
-                  className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary placeholder:text-th-secondary/40 focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all"
-                />
-              </div>
-
-              {/* Calificación */}
-              <div>
-                <label className="block text-sm font-medium text-th-primary mb-2">
-                  Calificación *
-                </label>
-                <InteractiveStars
-                  value={formRating}
-                  onChange={setFormRating}
-                />
-              </div>
-
-              {/* Comentario */}
-              <div>
-                <label className="block text-sm font-medium text-th-primary mb-1.5">
-                  Tu opinión *
-                </label>
-                <textarea
-                  rows={4}
-                  placeholder="Cuéntanos sobre tu experiencia con el producto..."
-                  className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary placeholder:text-th-secondary/40 focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all resize-none"
-                />
-              </div>
-
-              {/* Subir foto */}
-              <div>
-                <label className="block text-sm font-medium text-th-primary mb-1.5">
-                  Foto (opcional)
-                </label>
-                <label className="flex items-center gap-3 p-4 border-2 border-dashed border-th-border/20 rounded-lg cursor-pointer hover:border-accent/30 transition-colors">
-                  <ImagePlus
-                    size={24}
-                    className="text-th-secondary flex-shrink-0"
-                  />
+                <form className="space-y-5" onSubmit={handleSubmit}>
+                  {/* Selector de producto */}
                   <div>
-                    <p className="text-sm text-th-primary">
-                      Sube una foto de tu jersey
-                    </p>
-                    <p className="text-xs text-th-secondary">
-                      JPG, PNG — máx 5MB
-                    </p>
+                    <label className="block text-sm font-medium text-th-primary mb-1.5">
+                      Producto comprado *
+                    </label>
+                    <select
+                      required
+                      value={formProductId}
+                      onChange={(e) => setFormProductId(e.target.value)}
+                      className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all appearance-none"
+                    >
+                      <option value="">Seleccionar producto...</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                  />
-                </label>
-              </div>
 
-              {/* Enviar */}
-              <button
-                type="submit"
-                className="w-full flex items-center justify-center gap-2 bg-accent-cta text-accent-cta-text font-bold text-sm uppercase tracking-wide py-3.5 rounded-full hover:opacity-90 transition-opacity"
-              >
-                <Send size={16} />
-                Enviar Reseña
-              </button>
+                  {/* Nombre */}
+                  <div>
+                    <label className="block text-sm font-medium text-th-primary mb-1.5">
+                      Tu nombre *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                      placeholder="Ej: Carlos M."
+                      className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary placeholder:text-th-secondary/40 focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all"
+                    />
+                  </div>
 
-              <p className="text-[11px] text-th-secondary/60 text-center">
-                Al enviar, aceptas que tu reseña sea publicada con tu
-                nombre.
-              </p>
-            </form>
+                  {/* Calificación */}
+                  <div>
+                    <label className="block text-sm font-medium text-th-primary mb-2">
+                      Calificación *
+                    </label>
+                    <InteractiveStars
+                      value={formRating}
+                      onChange={setFormRating}
+                    />
+                  </div>
+
+                  {/* Comentario */}
+                  <div>
+                    <label className="block text-sm font-medium text-th-primary mb-1.5">
+                      Tu opinión *
+                    </label>
+                    <textarea
+                      required
+                      rows={4}
+                      value={formComment}
+                      onChange={(e) => setFormComment(e.target.value)}
+                      placeholder="Cuéntanos sobre tu experiencia con el producto..."
+                      className="w-full bg-theme-surface border border-th-border/20 rounded-lg px-4 py-2.5 text-sm text-th-primary placeholder:text-th-secondary/40 focus:outline-none focus:ring-1 focus:ring-accent/50 transition-all resize-none"
+                    />
+                  </div>
+
+                  {/* Enviar */}
+                  <button
+                    type="submit"
+                    disabled={submitting || !formRating}
+                    className="w-full flex items-center justify-center gap-2 bg-accent-cta text-accent-cta-text font-bold text-sm uppercase tracking-wide py-3.5 rounded-full hover:opacity-90 transition-opacity disabled:opacity-50"
+                  >
+                    <Send size={16} />
+                    {submitting ? 'Enviando...' : 'Enviar Reseña'}
+                  </button>
+
+                  <p className="text-[11px] text-th-secondary/60 text-center">
+                    Al enviar, aceptas que tu reseña sea publicada con tu nombre.
+                  </p>
+                </form>
+              </>
+            )}
           </div>
         </div>
       )}
 
       {/* ═══ LIGHTBOX — Foto expandida ═══ */}
-      {lightbox && (
+      {lightboxImg && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm cursor-zoom-out"
-          onClick={() => setLightbox(false)}
+          onClick={() => setLightboxImg(null)}
         >
-          <div className="relative max-w-2xl w-full aspect-[4/3] rounded-xl overflow-hidden bg-gradient-to-br from-accent/15 via-theme-surface to-accent/5 flex items-center justify-center">
-            <div className="text-center">
-              <Camera size={48} className="text-accent/30 mx-auto mb-2" />
-              <span className="text-th-secondary text-sm">
-                Foto del cliente (placeholder del mockup)
-              </span>
-            </div>
+          <div className="relative max-w-2xl w-full">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={lightboxImg}
+              alt="Foto del cliente"
+              className="w-full rounded-xl shadow-2xl"
+            />
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setLightbox(false);
+                setLightboxImg(null);
               }}
               className="absolute top-4 right-4 bg-black/50 text-white p-2 rounded-full hover:bg-black/70 transition-colors"
               aria-label="Cerrar foto"
