@@ -9,6 +9,7 @@ import ReviewsSection from "@/components/store/ReviewsSection";
 import { useCartStore } from "@/app/store/cartStore";
 import ProductSkeleton from "@/components/store/ProductSkeleton";
 import { useRouter } from "next/navigation";
+import Footer from "@/components/Footer";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:4000";
 
@@ -245,10 +246,10 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
           })()}
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 lg:grid-cols-[1.3fr_1fr] xl:grid-cols-[1.5fr_1fr] gap-12 lg:gap-16 lg:items-start">
 
           {/* COLUMNA IZQUIERDA: GALERÍA */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-[122px]">
             {(() => {
               const galleryImages: string[] =
                 product.images?.length > 0
@@ -403,10 +404,10 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
               })()}
             </div>
 
-            <div className="h-px w-full bg-th-border/10 my-4" />
+            <div className="h-px w-full bg-th-border/10 my-2" />
 
             {/* Descripción */}
-            <div className="mb-6">
+            <div className="mb-4">
               <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-2">Descripción</h3>
               <p className="text-th-secondary leading-relaxed font-light text-sm">
                 {product.description || "El jersey oficial de la temporada. Fabricado con tecnología de alta transpirabilidad para mantenerte fresco dentro y fuera de la cancha."}
@@ -414,7 +415,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             </div>
 
             {/* Selector de Talla */}
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary">Selecciona tu talla</h3>
                 <button className="flex items-center gap-1 text-[10px] md:text-xs uppercase tracking-widest text-th-secondary hover:text-th-primary transition-colors underline underline-offset-4">
@@ -776,6 +777,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
         </div>
       </section>
 
+      <Footer />
     </div>
   );
 }

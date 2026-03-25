@@ -335,6 +335,8 @@ const UpdateProductSchema = z.object({
     clubId: z.string().optional().nullable(),
     tagIds: z.array(z.string()).optional(),
     globalAllowsNameNumber: z.boolean().optional(),
+    earnPoints: z.boolean().optional(),
+    redeemMaxQty: z.number().nullable().optional(),
     variants: z.array(z.object({
         size: z.string(),
         color: z.string().optional().nullable(),
@@ -369,6 +371,8 @@ router.put('/products/:id', requireAuth, async (req, res, next) => {
                     authentic: body.authentic,
                     categoryId: body.categoryId,
                     clubId: body.clubId || null,
+                    earnPoints: body.earnPoints,
+                    redeemMaxQty: body.redeemMaxQty,
                 },
             });
 

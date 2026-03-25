@@ -141,6 +141,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         redeemMaxQty: formData.redeemMaxQty === "" ? null : parseInt(formData.redeemMaxQty as string),
       };
 
+      // Precios globales en centavos (lo que el usuario escribió en las cajas de cabecera)
+      const globalPriceCents = Math.round(parseFloat(formData.price) * 100);
+      const globalCompareAtCents = formData.compareAtPrice
+        ? Math.round(parseFloat(formData.compareAtPrice) * 100)
+        : null;
+
       // Incluir variantes si existen
       if (variants.length > 0) {
         payload.variants = variants.map(v => ({
@@ -151,8 +157,9 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
           hasLeaguePatch: v.hasLeaguePatch,
           hasChampionsPatch: v.hasChampionsPatch,
           stock: v.stock,
-          priceCents: v.priceCents,
-          compareAtPriceCents: v.compareAtPriceCents || undefined,
+          // Siempre sincronizar precio con el valor global de cabecera
+          priceCents: globalPriceCents,
+          compareAtPriceCents: globalCompareAtCents ?? (v.compareAtPriceCents || undefined),
           isDropshippable: v.isDropshippable,
           allowsNameNumber: formData.globalAllowsNameNumber ? v.allowsNameNumber : false,
           customizationPrice: v.customizationPrice,
@@ -162,10 +169,11 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
       const res = await api.put(`/api/v1/products/${params.id}`, payload, { auth: true });
       // api.put already throws on !ok
 
-      // Revalidate the cache on the server
-      await fetch(`/api/revalidate?path=/admin/products&path=/admin/products/[id]`, {
-        method: 'POST',
-      }).catch(() => {}); // Ignore if revalidate endpoint doesn't exist
+      // Revalidate the cache on the server (admin + public product pages)
+      await fetch(
+        `/api/revalidate?path=/admin/products&path=/product/${params.id}&path=/product/${formData.slug}`,
+        { method: 'POST' }
+      ).catch(() => {});
 
       router.push("/admin/products");
       router.refresh();
@@ -350,8 +358,8 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                       </div>
                     </div>
 
-                    {/* Fila 2: Parches, Color, Precio */}
-                    <div className="grid grid-cols-3 gap-3 mt-3">
+                    {/* Fila 2: Parches, Color, Precio, Precio Antes */}
+                    <div className="grid grid-cols-4 gap-3 mt-3">
                       <div>
                         <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Parches</label>
                         <select
@@ -376,8 +384,12 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
                         </select>
                       </div>
                       <div>
-                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Precio (cents)</label>
-                        <input type="number" min="0" value={v.priceCents} onChange={e => updateVariant(idx, 'priceCents', parseInt(e.target.value) || 0)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none" />
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Precio ($)</label>
+                        <input type="number" step="0.01" min="0" value={v.priceCents / 100} onChange={e => updateVariant(idx, 'priceCents', Math.round(parseFloat(e.target.value) * 100) || 0)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none" />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] font-bold uppercase text-slate-400 mb-1">Precio Antes ($)</label>
+                        <input type="number" step="0.01" min="0" value={(v.compareAtPriceCents || 0) / 100} onChange={e => updateVariant(idx, 'compareAtPriceCents', Math.round(parseFloat(e.target.value) * 100) || 0)} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-2 text-slate-800 text-sm focus:border-indigo-400 outline-none" />
                       </div>
                     </div>
 

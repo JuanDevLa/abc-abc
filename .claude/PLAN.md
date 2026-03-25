@@ -273,46 +273,18 @@ Tras cada tarea:
 
 ---
 
-#### 🔴 EX1 — Dropdown navbar theme-aware (blanco/negro según página)
-**Complejidad:** Baja
-**Archivos:** `frontend/components/Navbar.tsx` (líneas 368-412)
-**Solución:**
-El dropdown del menú de usuario (línea 368) tiene colores hardcodeados `bg-white text-black border-gray-100` que no respetan el tema oscuro de la homepage. Reemplazar:
-- `bg-white` → `bg-theme-card`
-- `text-black` → `text-th-primary`
-- `border-gray-100` → `border-th-border/10`
-- `text-gray-400` → `text-th-secondary`
-- `hover:bg-gray-50` → `hover:bg-theme-surface`
-- `text-gray-500` → `text-th-secondary`
-- `text-gray-600` → `text-th-secondary`
-
-Aplicar tanto al bloque autenticado (líneas 371-389) como al no autenticado (líneas 392-410). Las clases `bg-theme-card`, `text-th-primary`, etc. ya están definidas en `tailwind.config.ts` y `globals.css`.
+#### ✅ EX1 — Dropdown navbar theme-aware (blanco/negro según página)
+**Estado:** Completo — Navbar.tsx líneas 360 y 448 ya usan `bg-theme-card`, `text-th-primary`, `border-th-border/10`.
 
 ---
 
-#### 🔴 EX2 — Recuperar contraseña (frontend)
-**Complejidad:** Media
-**Archivos:**
-- `frontend/app/forgot-password/page.tsx` (nuevo)
-- `frontend/app/reset-password/page.tsx` (nuevo)
-- `frontend/app/login/LoginClient.tsx` (agregar link, línea 91)
-
-**Solución:**
-Backend ya implementado: `POST /auth/forgot-password` (auth.routes.ts:147), `POST /auth/reset-password` (auth.routes.ts:178), `sendPasswordResetEmail` (mailer.ts:245).
-
-1. **LoginClient.tsx**: Agregar `<Link href="/forgot-password">¿Olvidaste tu contraseña?</Link>` entre líneas 91-92 con estilo `text-sm text-accent hover:underline`.
-2. **forgot-password/page.tsx**: Formulario con campo email. Submit llama `POST /api/v1/auth/forgot-password` vía `apiFetch`. Mensaje genérico de éxito. Seguir patrón visual de LoginClient (clases: `bg-theme-card`, `border border-th-border`, heading dorado).
-3. **reset-password/page.tsx**: Formulario con email (prellenado vía query param), código 6 dígitos, nueva contraseña. Submit llama `POST /api/v1/auth/reset-password`. Éxito redirige a `/login`. Mismos estilos.
+#### ✅ EX2 — Recuperar contraseña (frontend)
+**Estado:** Completo — `/forgot-password` y `/reset-password` existen, link en LoginClient.tsx línea 100.
 
 ---
 
-#### 🟡 EX5-F — Buscador optimizado (parte frontend)
-**Complejidad:** Media
-**Archivos:** `frontend/components/Navbar.tsx` (líneas 80-191, mega-menu 437-493)
-**Solución:**
-Búsqueda funcional ~70%. Mejoras frontend:
-1. **Historial de búsquedas recientes**: Al enfocar input vacío, mostrar últimas 5 búsquedas desde `localStorage` key `search-history`. Guardar al hacer Enter.
-2. **Highlighting**: En mega-menu de resultados, envolver coincidencias en `<mark className="bg-accent/20">`.
+#### ✅ EX5-F — Buscador optimizado (parte frontend)
+**Estado:** Completo — `searchHistory` con localStorage, función `highlight()` con `<mark>` ya implementados en Navbar.tsx.
 
 ---
 
@@ -320,56 +292,23 @@ Búsqueda funcional ~70%. Mejoras frontend:
 
 ---
 
-#### 🔴 EX3-B — Admin Clientes (endpoints)
-**Complejidad:** Media
-**Archivos:** `backend/src/routes/admin.routes.ts`
-**Solución:**
-admin.routes.ts solo tiene `POST /login`. Agregar:
-1. `GET /api/v1/admin/customers` — lista paginada de Users con role CUSTOMER. Query con `include: { _count: { select: { orders: true } } }`. Soportar `?search=`, `?page=`, `?limit=`.
-2. `GET /api/v1/admin/customers/:id` — detalle con órdenes recientes.
-3. Proteger con middleware admin auth (verificar JWT con `role: 'admin'`).
+#### ✅ EX3-B — Admin Clientes (endpoints)
+**Estado:** Completo — superado por EX9 (CRM). `crm.routes.ts` cubre todo esto y más.
 
 ---
 
-#### 🔴 EX4-B — Panel usuario Settings (endpoint + migración)
-**Complejidad:** Baja-Media
-**Archivos:**
-- `backend/prisma/schema.prisma` (agregar campo `phone String?` a User)
-- `backend/src/routes/auth.routes.ts` (agregar PUT /auth/me)
-
-**Solución:**
-1. Agregar campo `phone String?` al modelo User en schema.prisma (requiere migración).
-2. Agregar `PUT /api/v1/auth/me` protegido con `requireAuth`: acepta `name`, `phone`. Validar con Zod. Retorna usuario actualizado.
+#### ✅ EX4-B — Panel usuario Settings (endpoint + migración)
+**Estado:** Completo — `phone` en schema, `PUT /api/v1/auth/me` en auth.routes.ts línea 147.
 
 ---
 
-#### 🟡 EX5-B — Buscador optimizado (parte backend)
-**Complejidad:** Media
-**Archivos:**
-- `backend/src/routes/search.routes.ts`
-- `backend/src/repositories/product.repository.ts` (líneas 66-105)
-
-**Solución:**
-En product.repository.ts, splitear query en palabras y buscar con OR (actualmente busca frase completa con `contains`). Permite encontrar "Real Madrid azul" aunque no sea frase exacta.
+#### ✅ EX5-B — Buscador optimizado (parte backend)
+**Estado:** Completo — `search.routes.ts` ya splitea por palabras con `translate()` accent-insensitive y `AND` por palabra.
 
 ---
 
-#### 🟡 EX6 — PDF de orden mejorado
-**Complejidad:** Media
-**Archivos:**
-- `backend/package.json` (agregar `pdfkit`)
-- `backend/src/services/pdf.service.ts` (nuevo)
-- `backend/src/routes/order.routes.ts` (nuevo endpoint)
-- `frontend/app/account/AccountClient.tsx` (botón descargar)
-- `frontend/app/admin/orders/page.tsx` (botón descargar)
-
-**Solución:**
-No existe generación de PDF. Solo emails HTML en mailer.ts.
-1. Instalar `pdfkit` en backend.
-2. Crear `pdf.service.ts` con `generateOrderPDF(order): Buffer` — header con nombre tienda, datos cliente, tabla de items (producto, talla, color, qty, precio), totales, # orden, fecha, tracking.
-3. Agregar `GET /api/v1/orders/:id/pdf` protegido con requireAuth (verifica que orden pertenece al usuario).
-4. Agregar `GET /api/v1/admin/orders/:id/pdf` protegido con admin auth.
-5. En AccountClient.tsx y admin orders page, agregar botón "Descargar PDF" que abre `window.open(url)`.
+#### ❌ EX6 — PDF de orden — DESCARTADO
+**Decisión:** No se implementará. El botón de descarga PDF en la cuenta de usuario no es requerido.
 
 ---
 
@@ -396,25 +335,13 @@ No existe generación de PDF. Solo emails HTML en mailer.ts.
 
 ---
 
-#### 🔴 EX3-F — Admin Clientes (página frontend)
-**Complejidad:** Media
-**Depende de:** EX3-B (endpoints backend)
-**Archivos:** `frontend/app/admin/customers/page.tsx` (nuevo)
-**Solución:**
-AdminSidebar.tsx (línea 12) tiene link a `/admin/customers` que es dead link. Crear página siguiendo patrón de `admin/orders/page.tsx`: tabla con columnas (Nombre, Email, Verificado, # Órdenes, Fecha registro), buscador, paginación.
+#### ✅ EX3-F — Admin Clientes (página frontend)
+**Estado:** Completo — superado por EX9 Fase 6. Tabla enriquecida + detalle completo.
 
 ---
 
-#### 🔴 EX4-F — Panel usuario Settings (página frontend)
-**Complejidad:** Media
-**Depende de:** EX4-B (endpoint PUT /auth/me)
-**Archivos:**
-- `frontend/app/account/settings/page.tsx` (nuevo)
-- `frontend/app/account/AccountClient.tsx` (agregar link)
-
-**Solución:**
-1. En AccountClient.tsx agregar botón "Editar perfil" → `/account/settings`.
-2. Crear `account/settings/page.tsx`: formulario con nombre + teléfono (prellenados desde GET /auth/me). Botón guardar llama PUT /auth/me. Sección "Cambiar contraseña" redirige a `/forgot-password`.
+#### ✅ EX4-F — Panel usuario Settings (página frontend)
+**Estado:** Completo — `/account/settings/page.tsx` existe con layout.
 
 ---
 
@@ -426,3 +353,150 @@ AdminSidebar.tsx (línea 12) tiene link a `/admin/customers` que es dead link. C
 | **Fase 2** | EX3-B → EX3-F, EX4-B → EX4-F | Core admin + usuario, backend primero |
 | **Fase 3** | EX5-B + EX5-F, EX6 | Mejoras de experiencia, independientes |
 | **Fase 4** | EX8, EX9 | Features avanzados, subdividir en sub-sprints |
+
+---
+
+## Sprint 5 — Rediseño Sistema de Puntos (PENDIENTE — 2026-03-26)
+
+### Contexto y decisión de negocio
+
+El sistema actual permite **canjear puntos como descuento en cada compra**. Eso es malo para el negocio:
+- El cliente compra 2 jerseys, aplica descuento, y se va feliz. Nunca acumula suficiente para la recompensa grande.
+- **Objetivo real:** Que el cliente compre 5 jerseys y se lleve la 6ª gratis. El incentivo debe ser la jersey GRATIS al final, no descuentos parciales en cada compra.
+
+### Números finales (CONFIRMADOS)
+
+| Concepto | Valor | Razón |
+|----------|-------|-------|
+| Bono de registro | **300 pts** | = 25% del umbral inmediatamente, el cliente siente progreso desde el día 1 |
+| Fórmula de puntos | **`round(priceCents / 200)`** | 1 pt por cada $2 MXN — proporcional al precio, transparente |
+| Jersey $350 | 175 pts | |
+| Jersey $550 | 275 pts | |
+| Jersey $750 | 375 pts | |
+| Jersey $1,000 | 500 pts | |
+| Umbral para jersey gratis | **1,200 pts** | |
+| Tope de precio de la jersey gratis | **$699 MXN** | Decidir si se sube/baja |
+
+**Progresión psicológica (jersey estándar $550):**
+
+| Momento | Puntos | % | Mensaje motivacional |
+|---------|--------|---|---------------------|
+| Registro | 300 | 25% | "¡Ya empezaste tu camino a la jersey gratis!" |
+| 1ª compra | 575 | 47% | "¡Casi a la mitad!" |
+| 2ª compra | 850 | 70% | "¡Más de la mitad!" |
+| 3ª compra | 1,125 | 93% | "¡Ya casi tienes la tuya gratis!" |
+| 4ª compra | 1,400 | ✅ | "¡JERSEY GRATIS DESBLOQUEADA!" |
+
+Jerseys más caras ($750) llegan en 3 compras. Jerseys baratas ($350) en 5-6. Justo y proporcional.
+
+---
+
+### Fase 1 — Backend: Rediseño del sistema de puntos
+
+**Archivos a modificar:**
+- `backend/src/services/rewards.service.ts`
+- `backend/src/routes/rewards.routes.ts`
+- `backend/src/routes/webhook.routes.ts` (earn on purchase)
+- `backend/src/routes/order.routes.ts` (QUITAR lógica de redeem-as-discount)
+- `backend/prisma/schema.prisma` (nuevo modelo `RewardRedemption`)
+- Nueva migración
+
+**Cambios:**
+
+1. **Quitar** `redeemPoints` del flujo de `POST /orders`. Actualmente el checkout acepta `?pointsToRedeem` y aplica descuento. Eliminar completamente esa lógica del backend.
+
+2. **Quitar** del frontend checkout el selector de puntos (`frontend/app/checkout/page.tsx`).
+
+3. **Agregar bono de registro** en `POST /auth/register` (o en el webhook de verificación de email): llamar `earnPoints(userId, 500, 'REGISTRATION_BONUS', 'Bono de bienvenida')`.
+
+4. **Nuevo modelo `RewardRedemption`** en schema.prisma:
+   ```prisma
+   model RewardRedemption {
+     id          String   @id @default(uuid())
+     userId      String
+     user        User     @relation(fields: [userId], references: [id])
+     couponId    String?  // cupón generado automáticamente
+     pointsUsed  Int
+     status      String   @default("PENDING") // PENDING | USED | EXPIRED
+     createdAt   DateTime @default(now())
+     expiresAt   DateTime
+   }
+   ```
+
+5. **Nuevo endpoint `POST /api/v1/rewards/redeem`**: cuando el usuario tiene ≥ umbral de puntos, puede solicitar su jersey gratis. El sistema:
+   - Verifica que tiene suficientes puntos
+   - Descuenta los puntos (`earnPoints(userId, -1500, 'REDEMPTION', 'Jersey gratis canjeada')`)
+   - Genera un cupón único de tipo `FREE_JERSEY` (usando el sistema de cupones existente)
+   - Devuelve el código del cupón
+   - Envía email de confirmación
+
+6. **Ajustar `earnPoints`** en webhook: fórmula dinámica `Math.round(order.totalCents / 200)`. No puntos fijos — proporcional al gasto real. Si la orden tiene cupón aplicado, calcular sobre el `totalCents` final pagado (no el precio original).
+
+---
+
+### Fase 2 — Frontend: Página `/account/rewards` rediseñada
+
+**Archivos a modificar:**
+- `frontend/app/account/rewards/page.tsx` (reescritura completa)
+
+**Nueva UI — debe ser visualmente impactante y motivacional:**
+
+1. **Hero promocional** en la parte superior:
+   - Fondo degradado (dorado/negro o morado oscuro)
+   - Texto grande: **"¡Regístrate y obtén 500 puntos gratis!"**
+   - Subtítulo: **"Acumula 1,500 puntos y llévate una jersey totalmente GRATIS"**
+   - Badge animado o ilustración de jersey
+
+2. **Barra de progreso hacia la jersey gratis:**
+   - Barra horizontal grande con marcadores: 0 → 300 (registro) → 600 → 900 → 1200 (meta)
+   - Puntos actuales destacados + porcentaje: "**70% completado**"
+   - Texto motivacional dinámico según el % (ver tabla de mensajes arriba)
+   - Mostrar también: "¡Te faltan solo X puntos!" — número concreto, no abstracto
+   - Ícono de jersey al final de la barra (candado si no ha llegado, animación de confetti si sí)
+   - Mostrar equivalencia en jerseys: "= aproximadamente X jerseys más"
+
+3. **Cómo ganar puntos** — 3 cards:
+   - 🎁 Registro: +300 pts (gratis solo por registrarte)
+   - 🛒 Cada compra: 1 pt por cada $2 MXN (jersey de $550 = 275 pts)
+   - ⭐ (Espacio reservado para futura forma de ganar, ej. reseña verificada)
+
+4. **Botón de canjear** (solo visible cuando tiene ≥ 1500 pts):
+   - CTA prominente: "¡Canjear mi jersey gratis!"
+   - Modal de confirmación con detalles
+   - Muestra el código de cupón generado
+
+5. **Historial de puntos** (colapsable, al fondo)
+
+---
+
+### Fase 3 — Frontend: Página pública de promoción `/rewards` (store)
+
+**Archivo:** `frontend/app/rewards/page.tsx` (nuevo) o integrar en homepage
+
+Landing page pública (sin login requerido para ver) que explica el programa:
+- Hero visual con la propuesta de valor
+- Steps: "Cómo funciona" (1. Regístrate → 2. Compra → 3. Acumula → 4. ¡Jersey gratis!)
+- CTA: "Regístrate gratis" / "Iniciar sesión"
+- Esta página se puede linkear desde el navbar o un banner en homepage
+
+---
+
+### Fase 4 — Admin: Gestión de canjes
+
+**Archivos:** `frontend/app/admin/rewards/page.tsx` (extender)
+
+Agregar sección de **Canjes pendientes** en el panel admin de rewards:
+- Lista de `RewardRedemption` con status PENDING
+- Ver qué usuario, cuántos puntos usó, cuándo
+- Botón "Marcar como entregado" (cambia status a USED)
+- El cupón generado aparece con su código
+
+---
+
+### Notas de implementación
+
+- **No tocar** la lógica de `RewardConfig` (admin ya puede ajustar multiplicadores) — solo adaptar los valores por defecto.
+- El cupón de jersey gratis debe ser tipo `FREE_JERSEY` con descuento del 100% hasta cierto monto máximo.
+- El sistema de cupones ya existe (`coupon.service.ts`, `coupon.routes.ts`) — reutilizar.
+- Considerar añadir campo `pointsEarned` a `Order` para mostrar en el historial cuántos puntos dio cada orden.
+- Email de notificación cuando el usuario llega al umbral (opcional, Fase 2+).
