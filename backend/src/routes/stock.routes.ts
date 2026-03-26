@@ -50,7 +50,7 @@ router.get('/admin/stock', requireAuth, async (_req: Request, res: Response) => 
     });
 
     // Para cada variante, calcular unidades vendidas desde órdenes confirmadas
-    const variantIds = products.flatMap(p => p.variants.map(v => v.id)) as string[];
+    const variantIds: string[] = products.flatMap(p => p.variants.map((v: any) => v.id as string));
 
     // Agrupa la suma de quantity por variantId en órdenes pagadas/en proceso/enviadas/entregadas
     const soldAgg = await prisma.orderItem.groupBy({
