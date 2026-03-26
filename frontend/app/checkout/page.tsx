@@ -258,7 +258,7 @@ export default function CheckoutPage() {
                             <section className="space-y-4">
                                 <h2 className="text-xl font-heading uppercase tracking-wide">Información de Contacto</h2>
                                 <div>
-                                    <input type="email" name="email" required placeholder="Correo Electrónico" value={formData.email} onChange={handleInputChange} className={inputClass} />
+                                    <input type="email" name="email" required placeholder="Correo Electrónico" value={formData.email} onChange={handleInputChange} autoComplete="email" className={inputClass} />
                                     <p className="text-xs text-th-secondary mt-2 flex items-center gap-1">
                                         <ShieldCheck className="w-3.5 h-3.5" /> Te enviaremos el recibo y actualizaciones de envío aquí.
                                     </p>
@@ -269,19 +269,19 @@ export default function CheckoutPage() {
                             <section className="space-y-4">
                                 <h2 className="text-xl font-heading uppercase tracking-wide">Dirección de Envío</h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    <input type="text" name="firstName" required placeholder="Nombre" value={formData.firstName} onChange={handleInputChange} className={inputClass} />
-                                    <input type="text" name="lastName" required placeholder="Apellido(s)" value={formData.lastName} onChange={handleInputChange} className={inputClass} />
-                                    <input type="text" name="address" required placeholder="Dirección (Calle, Número, Colonia)" value={formData.address} onChange={handleInputChange} className={`${inputClass} md:col-span-2`} />
-                                    <input type="text" name="city" required placeholder="Ciudad" value={formData.city} onChange={handleInputChange} className={inputClass} />
-                                    <input type="text" name="state" required placeholder="Estado" value={formData.state} onChange={handleInputChange} className={inputClass} />
+                                    <input type="text" name="firstName" required placeholder="Nombre" value={formData.firstName} onChange={handleInputChange} autoComplete="given-name" className={inputClass} />
+                                    <input type="text" name="lastName" required placeholder="Apellido(s)" value={formData.lastName} onChange={handleInputChange} autoComplete="family-name" className={inputClass} />
+                                    <input type="text" name="address" required placeholder="Dirección (Calle, Número, Colonia)" value={formData.address} onChange={handleInputChange} autoComplete="street-address" className={`${inputClass} md:col-span-2`} />
+                                    <input type="text" name="city" required placeholder="Ciudad" value={formData.city} onChange={handleInputChange} autoComplete="address-level2" className={inputClass} />
+                                    <input type="text" name="state" required placeholder="Estado" value={formData.state} onChange={handleInputChange} autoComplete="address-level1" className={inputClass} />
                                     <div className="grid grid-cols-2 gap-4">
                                         <input
                                             type="text" name="zipCode" required placeholder="C.P."
                                             value={formData.zipCode} onChange={handleInputChange}
                                             pattern="\d{5}" maxLength={5} title="5 dígitos"
-                                            className={inputClass}
+                                            autoComplete="postal-code" className={inputClass}
                                         />
-                                        <select name="country" value={formData.country} onChange={handleInputChange} className={inputClass}>
+                                        <select name="country" value={formData.country} onChange={handleInputChange} autoComplete="country-name" className={inputClass}>
                                             <option value="México">México</option>
                                         </select>
                                     </div>
@@ -289,7 +289,7 @@ export default function CheckoutPage() {
                                         type="tel" name="phone" required placeholder="Teléfono (10 dígitos)"
                                         value={formData.phone} onChange={handleInputChange}
                                         pattern="\d{10}" maxLength={10} title="10 dígitos"
-                                        className={`${inputClass} md:col-span-2`}
+                                        autoComplete="tel" className={`${inputClass} md:col-span-2`}
                                     />
                                     <input
                                         type="text" name="reference" placeholder="Referencia (entre calles, fachada, etc.)"

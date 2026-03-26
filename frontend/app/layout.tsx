@@ -1,16 +1,10 @@
 // 1. IMPORTAR LOS ESTILOS
 import "../styles/globals.css";
 import type { Metadata } from "next";
-import { Inter, Bebas_Neue, Jost } from "next/font/google";
 import CartSidebar from "@/components/CartSidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { RouteThemeForcer } from "@/components/RouteThemeForcer";
 import { AuthProvider } from "@/contexts/AuthContext";
-
-// Fuentes
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const bebasNeue = Bebas_Neue({ weight: "400", subsets: ["latin"], variable: "--font-heading" });
-const jost = Jost({ weight: ["800"], subsets: ["latin"], variable: "--font-jost" });
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jerseysraw.com"),
@@ -59,7 +53,7 @@ export default function RootLayout({
         {/* Setea data-theme antes del primer paint: "/" → dark, lo demás → light */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){document.documentElement.setAttribute('data-theme',location.pathname==='/'?'dark':'light')})()` }} />
       </head>
-      <body className={`${inter.variable} ${bebasNeue.variable} ${jost.variable} font-sans bg-theme-bg text-th-primary transition-colors duration-300`}>
+      <body className="font-sans bg-theme-bg text-th-primary transition-colors duration-300">
         <AuthProvider>
           <ThemeProvider>
             <RouteThemeForcer />

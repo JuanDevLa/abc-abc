@@ -73,6 +73,7 @@ router.get('/analytics/abandoned', requireAuth, async (_req: Request, res: Respo
 
 /* ─── GET /api/v1/analytics/views/:productId — Vistas de un producto (admin) ─── */
 router.get('/analytics/views/:productId', requireAuth, async (req: Request, res: Response) => {
+  if (!adminOnly(req, res)) return;
   const { productId } = req.params;
 
   try {

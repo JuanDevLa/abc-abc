@@ -68,7 +68,7 @@ const Hero = () => {
             Ver Catálogo <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </Link>
           {/* Botón Secundario: Noise Background (Aceternity-style) */}
-          <button className="group relative w-full sm:w-auto px-10 py-4 text-white font-black uppercase tracking-widest transition-all transform hover:-translate-y-1 overflow-hidden rounded-full border border-white/20">
+          <Link href="/catalog" className="group relative w-full sm:w-auto px-10 py-4 text-white font-black uppercase tracking-widest transition-all transform hover:-translate-y-1 overflow-hidden rounded-full border border-white/20">
             {/* Animated gradient blobs */}
             <div className="absolute inset-0 overflow-hidden rounded-[inherit]">
               <div className="absolute -inset-[100%] animate-[spin_8s_linear_infinite] opacity-60">
@@ -83,7 +83,7 @@ const Hero = () => {
             {/* Dark inner fill to let only edges of gradient show through */}
             <div className="absolute inset-[1px] rounded-[inherit] bg-black/80 group-hover:bg-black/70 transition-colors" />
             <span className="relative z-10">Más Vendidos</span>
-          </button>
+          </Link>
         </div>
       </div>
     </section>

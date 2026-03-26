@@ -3,6 +3,20 @@
 @tailwind utilities;
 
 /* ============================================
+   FUENTES LOCALES (sin Google Fonts)
+   ============================================ */
+@import '@fontsource-variable/inter';
+@import '@fontsource/bebas-neue';
+@import '@fontsource/jost/800.css';
+@import '@fontsource/barlow-condensed/700-italic.css';
+
+:root {
+  --font-inter: 'Inter Variable', system-ui, sans-serif;
+  --font-jost: 'Jost', sans-serif;
+  --font-barlow: 'Barlow Condensed', sans-serif;
+}
+
+/* ============================================
    JERSEYS RAW — DUAL THEME SYSTEM
    Light: Nike Architectural / Dark: Streetwear Neón
    Variables in RGB format for Tailwind opacity support

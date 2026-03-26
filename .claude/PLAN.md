@@ -553,10 +553,9 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Problema:** `order.email === req.user!.sub` siempre es falso porque `sub` es UUID, no email. Cualquier usuario autenticado puede descargar el PDF de cualquier orden si adivina el UUID.
 **Fix:** Usar solo `order.userId === req.user!.sub` + verificar admin.
 
-#### 6A-3 [HIGH] Analytics views sin admin check
+#### ✅ 6A-3 [HIGH] Analytics views sin admin check
 **Archivo:** `analytics.routes.ts:75`
-**Problema:** `GET /analytics/views/:productId` usa `requireAuth` pero no verifica rol admin.
-**Fix:** Agregar `if (!adminOnly(req, res)) return;`
+**Fix aplicado:** Agregado `if (!adminOnly(req, res)) return;` — (2026-03-26)
 
 #### 6A-4 [HIGH] Endpoint /api/revalidate sin autenticación
 **Archivo:** `frontend/app/api/revalidate/route.ts`
@@ -745,10 +744,9 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `checkout/page.tsx`
 **Fix:** Validación per-field en onBlur con feedback visual (borde verde/rojo + helper text).
 
-#### 6D-7 [HIGH] Hero botón "Más Vendidos" muerto
+#### ✅ 6D-7 [HIGH] Hero botón "Más Vendidos" muerto
 **Archivo:** `Hero.tsx:71`
-**Problema:** `<button>` sin onClick ni href.
-**Fix:** Cambiar a `<Link href="/catalog?sort=best_sellers">`.
+**Fix aplicado:** Convertido a `<Link href="/catalog">` — (2026-03-26)
 
 #### 6D-8 [HIGH] iOS auto-zoom en inputs de checkout
 **Archivo:** `checkout/page.tsx`
@@ -779,13 +777,13 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `confirmation/[orderNumber]/page.tsx`
 **Fix:** Si usuario no logueado, mostrar CTA "Crea tu cuenta para ganar puntos" con email pre-llenado.
 
-#### 6D-16 [HIGH] Missing noindex en checkout/confirmation
-**Archivos:** `checkout/page.tsx`, `confirmation/[orderNumber]/page.tsx`
-**Fix:** Exportar `metadata` con `robots: { index: false, follow: false }`.
+#### ✅ 6D-16 [HIGH] Missing noindex en checkout/confirmation
+**Archivos:** `checkout/layout.tsx`, `confirmation/[orderNumber]/layout.tsx`
+**Fix aplicado:** Ya existía `robots: { index: false, follow: false }` en ambos layouts — verificado (2026-03-26)
 
-#### 6D-17 [HIGH] Missing autocomplete en checkout
+#### ✅ 6D-17 [HIGH] Missing autocomplete en checkout
 **Archivo:** `checkout/page.tsx`
-**Fix:** Agregar `autocomplete="email"`, `autocomplete="given-name"`, `autocomplete="tel"`, `autocomplete="street-address"`, etc.
+**Fix aplicado:** Agregado `autoComplete` en los 8 inputs: email, given-name, family-name, street-address, address-level2, address-level1, postal-code, country-name, tel — (2026-03-26)
 
 #### 6D-18 [MEDIUM] No abandoned cart email / exit-intent
 **Acción:** En email blur en checkout, guardar email → cron envía reminder si orden no se completa en 1hr.

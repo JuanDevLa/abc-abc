@@ -133,6 +133,13 @@ const ProductCarousel = () => {
                 key={`${product.id}-${index}`}
                 className="w-80 lg:w-[calc(25%-12px)] flex-shrink-0 snap-start group flex flex-col h-[440px]"
               >
+                {/* NOMBRE — arriba, impactante */}
+                <div className="pb-3 text-center">
+                  <h3 className="text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                    {product.name}
+                  </h3>
+                </div>
+
                 {/* IMAGEN — ocupa el espacio disponible */}
                 <Link href={`/catalog?clubs=${product.slug}`} className="block relative flex-1 min-h-0 overflow-hidden cursor-pointer rounded-lg">
                   <img
@@ -148,13 +155,6 @@ const ProductCarousel = () => {
                     />
                   )}
                 </Link>
-
-                {/* NOMBRE */}
-                <div className="pt-3 text-center">
-                  <h3 className="font-bold text-base leading-tight text-th-primary">
-                    {product.name}
-                  </h3>
-                </div>
 
                 {/* BOTÓN al fondo con pequeño espacio */}
                 <div className="pt-2 pb-3 text-center">
