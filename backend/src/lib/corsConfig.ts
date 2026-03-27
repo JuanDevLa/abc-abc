@@ -7,8 +7,8 @@ import { type CorsOptions } from 'cors';
  */
 const DEFAULT_ORIGINS = [
   'http://localhost:3000',       // frontend local
-  'https://JerseysRaw.com',     // producción
-  'https://www.JerseysRaw.com', // con www
+  'https://jerseysraw.com',      // producción
+  'https://www.jerseysraw.com',  // con www
 ];
 
 function getAllowedOrigins(): string[] {
