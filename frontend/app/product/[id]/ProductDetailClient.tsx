@@ -166,7 +166,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
     if (!el) return;
     const card = el.children[0] as HTMLElement;
     const step = (card?.offsetWidth ?? 200) + 16;
-    el.scrollBy({ left: dir * step, behavior: 'smooth' });
+    el.scrollLeft += dir * step;
   };
 
   const onCarouselScroll = () => {
