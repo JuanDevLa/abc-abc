@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Tag, Shield, Star, Gift, Ticket, Warehouse, Folder, BarChart3 } from "lucide-react";
+import { LayoutDashboard, ShoppingBag, Package, Users, Settings, LogOut, Tag, Shield, Star, Gift, Ticket, Warehouse, Folder, BarChart3, Trophy } from "lucide-react";
 import { clearAdminToken } from "@/lib/api";
 
 const MENU_ITEMS = [
@@ -16,6 +16,7 @@ const MENU_ITEMS = [
   { name: "Cupones", icon: Ticket, path: "/admin/coupons" },
   { name: "Ajustes", icon: Settings, path: "/admin/settings" },
   { name: "Estilos / Tags", icon: Tag, path: "/admin/tags" },
+  { name: "Ligas", icon: Trophy, path: "/admin/leagues" },
   { name: "Equipos / Clubes", icon: Shield, path: "/admin/clubs" },
   { name: "Categorías", icon: Folder, path: "/admin/categories" },
 ];
