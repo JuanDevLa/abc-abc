@@ -1,4 +1,21 @@
+import type { Metadata } from "next";
 import { ProductListing } from "@/components/store/ProductListing";
+
+export async function generateMetadata(
+  { params }: { params: { slug: string } }
+): Promise<Metadata> {
+  const title = params.slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  return {
+    title: `Colección ${title} | Jerseys Raw`,
+    description: `Jerseys de la colección ${title}. Todas las tallas disponibles. Envíos a toda la República Mexicana.`,
+    openGraph: {
+      title: `Colección ${title} — Jerseys Raw`,
+      description: `Jerseys de la colección ${title}. Envíos a todo México.`,
+      url: `https://jerseysraw.com/collections/${params.slug}`,
+    },
+    alternates: { canonical: `https://jerseysraw.com/collections/${params.slug}` },
+  };
+}
 
 async function getCollectionProducts(slug: string) {
   try {

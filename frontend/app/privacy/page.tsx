@@ -5,6 +5,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Política de Privacidad | Jerseys Raw",
   description: "Cómo recopilamos, usamos y protegemos tu información personal en Jerseys Raw.",
+  alternates: { canonical: "https://jerseysraw.com/privacy" },
 };
 
 export default function PrivacyPage() {

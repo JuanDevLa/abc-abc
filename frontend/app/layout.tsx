@@ -47,11 +47,48 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://jerseysraw.com/#organization",
+        "name": "Jerseys Raw",
+        "url": "https://jerseysraw.com",
+        "logo": "https://jerseysraw.com/favicon.png",
+        "sameAs": ["https://www.instagram.com/JERSEYS_RAW"],
+        "contactPoint": {
+          "@type": "ContactPoint",
+          "telephone": "+52-965-138-6865",
+          "contactType": "customer service",
+          "areaServed": "MX",
+          "availableLanguage": "Spanish",
+        },
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://jerseysraw.com/#website",
+        "url": "https://jerseysraw.com",
+        "name": "Jerseys Raw",
+        "publisher": { "@id": "https://jerseysraw.com/#organization" },
+        "potentialAction": {
+          "@type": "SearchAction",
+          "target": "https://jerseysraw.com/catalog?search={search_term_string}",
+          "query-input": "required name=search_term_string",
+        },
+      },
+    ],
+  };
+
   return (
-    <html lang="es" suppressHydrationWarning>
+    <html lang="es-MX" suppressHydrationWarning>
       <head>
         {/* Setea data-theme antes del primer paint: "/" → dark, lo demás → light */}
         <script dangerouslySetInnerHTML={{ __html: `(function(){document.documentElement.setAttribute('data-theme',location.pathname==='/'?'dark':'light')})()` }} />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body className="font-sans bg-theme-bg text-th-primary transition-colors duration-300">
         <AuthProvider>

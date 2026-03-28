@@ -5,6 +5,7 @@ import Link from "next/link";
 export const metadata = {
   title: "Términos y Condiciones | Jerseys Raw",
   description: "Términos y condiciones de uso y compra en Jerseys Raw.",
+  alternates: { canonical: "https://jerseysraw.com/terms" },
 };
 
 export default function TermsPage() {

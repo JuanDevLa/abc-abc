@@ -9,6 +9,7 @@ export const metadata: Metadata = {
     description: "Explora nuestra colección completa de jerseys auténticos de fútbol.",
     url: "https://jerseysraw.com/catalog",
   },
+  alternates: { canonical: "https://jerseysraw.com/catalog" },
 };
 
 // Obtener productos iniciales (Server Component)

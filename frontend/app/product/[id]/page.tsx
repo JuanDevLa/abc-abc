@@ -57,6 +57,7 @@ export async function generateMetadata(
       description,
       images: imageUrl ? [imageUrl] : [],
     },
+    alternates: { canonical: `https://jerseysraw.com/product/${params.id}` },
   };
 }
 
@@ -68,6 +69,53 @@ export default async function ProductDetailPage(
 
   if (!product) notFound();
 
-  // Pasar el producto pre-fetched al client component para evitar doble fetch
-  return <ProductDetailClient productId={params.id} initialProduct={product} />;
+  const price = product.variants?.[0]?.priceCents;
+  const imageUrl = product.images?.[0]?.url || product.imageUrl || "";
+  const availability = product.variants?.some((v: any) => v.stock > 0)
+    ? "https://schema.org/InStock"
+    : "https://schema.org/OutOfStock";
+
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Product",
+        "@id": `https://jerseysraw.com/product/${params.id}#product`,
+        "name": product.name,
+        "description": product.description || `Jersey oficial de ${product.name}`,
+        "image": imageUrl ? [imageUrl] : [],
+        "sku": params.id,
+        "brand": { "@type": "Brand", "name": "Jerseys Raw" },
+        ...(price ? {
+          "offers": {
+            "@type": "Offer",
+            "url": `https://jerseysraw.com/product/${params.id}`,
+            "priceCurrency": "MXN",
+            "price": (price / 100).toFixed(2),
+            "availability": availability,
+            "itemCondition": "https://schema.org/NewCondition",
+            "seller": { "@type": "Organization", "name": "Jerseys Raw" },
+          },
+        } : {}),
+      },
+      {
+        "@type": "BreadcrumbList",
+        "itemListElement": [
+          { "@type": "ListItem", "position": 1, "name": "Inicio", "item": "https://jerseysraw.com" },
+          { "@type": "ListItem", "position": 2, "name": "Catálogo", "item": "https://jerseysraw.com/catalog" },
+          { "@type": "ListItem", "position": 3, "name": product.name, "item": `https://jerseysraw.com/product/${params.id}` },
+        ],
+      },
+    ],
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductDetailClient productId={params.id} initialProduct={product} />
+    </>
+  );
 }

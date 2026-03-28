@@ -13,6 +13,7 @@ export async function generateMetadata(
       description: `Jerseys de todos los equipos de ${title}. Envíos a todo México.`,
       url: `https://jerseysraw.com/leagues/${params.slug}`,
     },
+    alternates: { canonical: `https://jerseysraw.com/leagues/${params.slug}` },
   };
 }
 
