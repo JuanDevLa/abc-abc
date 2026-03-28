@@ -293,22 +293,22 @@ const Navbar = () => {
         className={`fixed top-0 w-full z-50 flex flex-col transition-transform duration-300 ease-in-out ${isHidden
           ? "-translate-y-full"
           : solid
-            ? "-translate-y-[34px] md:-translate-y-[38px]"
+            ? "-translate-y-[34px] lg:-translate-y-[38px]"
             : "translate-y-0"
           }`}
       >
         {/* 1. BARRA DE ANUNCIOS */}
-        <div className={`text-[10px] md:text-xs font-bold py-2.5 px-4 tracking-widest border-b relative z-50 h-[34px] md:h-[38px] transition-all duration-500 ${solid
+        <div className={`text-[10px] lg:text-xs font-bold py-2.5 px-4 tracking-widest border-b relative z-50 h-[34px] lg:h-[38px] transition-all duration-500 ${solid
           ? 'bg-th-announce text-th-primary border-th-border/20'
           : 'bg-transparent text-white border-white/10'
           }`}>
-          <div className="container mx-auto flex justify-center md:justify-between items-center h-full">
-            <div className="flex-1 text-center transition-all duration-500 ease-in-out pl-8 md:pl-19">
+          <div className="container mx-auto flex justify-center lg:justify-between items-center h-full">
+            <div className="flex-1 text-center transition-all duration-500 ease-in-out pl-8 lg:pl-19">
               <span key={currentIndex} className="animate-in fade-in slide-in-from-bottom-2 duration-500">
                 {announcements[currentIndex]}
               </span>
             </div>
-            <div className="hidden md:flex gap-6 text-[10px] absolute right-6 opacity-70">
+            <div className="hidden lg:flex gap-6 text-[10px] absolute right-6 opacity-70">
               <Link href="/help" className="hover:opacity-100 transition-opacity">AYUDA</Link>
               <Link href="/tracking" className="hover:opacity-100 transition-opacity">RASTREA TU ORDEN</Link>
             </div>
@@ -316,7 +316,7 @@ const Navbar = () => {
         </div>
 
         {/* 2. NAVBAR PRINCIPAL */}
-        <div className={`w-full backdrop-blur-md border-b h-16 md:h-20 transition-all duration-500 ${solid
+        <div className={`w-full backdrop-blur-md border-b h-16 lg:h-20 transition-all duration-500 ${solid
           ? 'bg-th-navbar/95 border-th-border/10 shadow-lg'
           : 'bg-transparent border-white/20 shadow-none'
           }`}>
@@ -330,7 +330,7 @@ const Navbar = () => {
             </Link>
 
             {/* MENÚ */}
-            <nav className="hidden md:flex items-center gap-8">
+            <nav className="hidden lg:flex items-center gap-8">
               {[
                 { label: 'Hombres', key: 'hombres' },
                 { label: 'Mujeres', key: 'mujeres' },
@@ -411,7 +411,7 @@ const Navbar = () => {
             <div className={`flex items-center gap-3 transition-colors duration-500 ${solid ? 'text-th-primary' : 'text-white'
               }`}>
               {/* Search Input */}
-              <div className="hidden md:block relative">
+              <div className="hidden lg:block relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-th-secondary/60 pointer-events-none z-10" />
                 <input
                   ref={searchInputRef}
@@ -424,7 +424,7 @@ const Navbar = () => {
                   onKeyDown={handleSearchSubmit}
                   onFocus={handleSearchFocus}
                   placeholder="Buscar"
-                  className={`w-40 lg:w-48 text-sm py-2 pl-9 pr-3 rounded-full outline-none transition-colors ${solid
+                  className={`w-44 xl:w-52 text-sm py-2 pl-9 pr-3 rounded-full outline-none transition-colors ${solid
                     ? "bg-theme-surface text-th-primary placeholder:text-th-secondary/50"
                     : "bg-white/10 text-white placeholder:text-white/50"
                     }`}
@@ -509,7 +509,7 @@ const Navbar = () => {
               </button>
 
               <button
-                className="md:hidden"
+                className="lg:hidden"
                 onClick={() => setDrawerOpen(true)}
                 aria-label="Abrir menú"
               >
@@ -610,13 +610,13 @@ const Navbar = () => {
       {/* Overlay */}
       {drawerOpen && (
         <div
-          className="fixed inset-0 bg-black/70 z-[300] md:hidden backdrop-blur-[2px]"
+          className="fixed inset-0 bg-black/70 z-[300] lg:hidden backdrop-blur-[2px]"
           onClick={() => setDrawerOpen(false)}
         />
       )}
 
       {/* Panel */}
-      <div className={`fixed top-0 left-0 h-full w-[82vw] max-w-xs bg-white z-[310] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out md:hidden ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <div className={`fixed top-0 left-0 h-full w-[82vw] max-w-xs bg-white z-[310] flex flex-col shadow-2xl transition-transform duration-300 ease-in-out lg:hidden ${drawerOpen ? 'translate-x-0' : '-translate-x-full'}`}>
 
         {/* Header del drawer */}
         <div className="flex items-center justify-between px-5 py-4 bg-black">

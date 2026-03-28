@@ -2,11 +2,11 @@ import Link from 'next/link';
 
 const Newsletter = () => (
   <section className="bg-zinc-800 py-16 px-6 overflow-hidden">
-    <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+    <div className="container mx-auto grid grid-cols-1 lg:grid-cols-2 gap-12 items-center text-center lg:text-left">
 
       {/* Lado izquierdo — hashtag */}
       <div>
-        <h2 className="text-3xl sm:text-5xl lg:text-5xl xl:text-7xl font-sans font-extrabold uppercase text-[#F8C37C] leading-none tracking-tight">
+        <h2 className="text-4xl sm:text-5xl md:text-6xl lg:text-6xl xl:text-8xl font-sans font-extrabold uppercase text-[#F8C37C] leading-tight tracking-tight">
           #ÚNETEALCLUB
         </h2>
       </div>
@@ -30,7 +30,7 @@ const Newsletter = () => (
           <input type="checkbox" className="mt-1 accent-[#F8C37C] w-4 h-4 flex-shrink-0" />
           <span className="text-gray-400 text-xs leading-relaxed">
             Al registrarme acepto el{' '}
-            <Link href="/privacy" className="text-white underline hover:text-[#F8C37C] transition-colors">
+            <Link href="/aviso-de-privacidad" className="text-white underline hover:text-[#F8C37C] transition-colors">
               Aviso de Privacidad
             </Link>{' '}
             y el tratamiento de los datos personales.
@@ -42,7 +42,7 @@ const Newsletter = () => (
           <input type="checkbox" className="mt-1 accent-[#F8C37C] w-4 h-4 flex-shrink-0" />
           <span className="text-gray-400 text-xs leading-relaxed">
             Al registrarme acepto los{' '}
-            <Link href="/terms" className="text-white underline hover:text-[#F8C37C] transition-colors">
+            <Link href="/terminos-y-condiciones" className="text-white underline hover:text-[#F8C37C] transition-colors">
               Términos y Condiciones
             </Link>.
           </span>

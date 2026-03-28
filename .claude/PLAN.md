@@ -356,6 +356,23 @@ Tras cada tarea:
 
 ---
 
+## Sprint 5 — Responsive Tablet (iPad) ⏳ PENDIENTE
+
+### EX-TAB1 — Product Carousel: cards muy altas en tablet
+**Archivos:** `frontend/components/ProductCarousel.tsx`
+**Complejidad:** Baja
+**Breakpoint afectado:** md (768px) y lg landscape (1024px)
+
+**Problema:** La card tiene `h-[440px]` fijo para todos los tamaños. En iPad portrait (768px) ocupa casi toda la pantalla vertical; en iPad landscape (1024px) las cards cambian a `lg:w-[calc(25%-12px)]` (~244px) pero mantienen 440px de alto, quedando muy delgadas y alargadas.
+
+**Fix:**
+1. **Altura responsive:** `h-[340px] md:h-[380px] lg:h-[440px]`
+2. **Ancho en tablet:** en `md` mostrar 3 cards con `md:w-[calc(33%-11px)]` en lugar del fijo `w-80` (320px) — evita que solo 2 cards llenen mal el espacio
+3. **Heading del nombre:** `text-3xl md:text-4xl` (actualmente `text-4xl` fijo)
+4. **Botón "Comprar":** `py-2 lg:py-2.5` para ganar espacio de imagen en tablet
+
+---
+
 ## Sprint 5 — Rediseño Sistema de Puntos ✅ COMPLETO (2026-03-25)
 
 ### Contexto y decisión de negocio
@@ -823,3 +840,79 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 
 **Fase 6.7 — Polish & nice-to-have**
 `6D-18` `6D-19` `6D-20` `6D-21` `6B-16` `6B-17` `6B-18` `6C-14`
+
+---
+
+## Sprint 7 — Google OAuth Login
+
+### Contexto
+
+Reducir fricción en el registro/login. Google OAuth cubre el 90% del caso de uso sin coste. Apple Sign In descartado por ahora (requiere Apple Developer $99/año y solo vale si hay app iOS).
+
+---
+
+### EX10-B — Backend: endpoint Google OAuth
+**Archivos:**
+- `backend/src/routes/auth.routes.ts` (agregar `POST /auth/google`)
+- `backend/src/lib/auth.ts` (sin cambios, reusar `generateToken`)
+- `backend/prisma/schema.prisma` (agregar `googleId String? @unique` en User)
+- Nueva migración Prisma
+
+**Complejidad:** Media
+**Requiere migración:** Sí (campo `googleId` en User)
+
+**Flujo:**
+1. Frontend recibe el `credential` (ID token JWT) de Google tras el popup
+2. Llama `POST /api/v1/auth/google` con `{ credential }`
+3. Backend verifica el ID token con Google: `GET https://oauth2.googleapis.com/tokeninfo?id_token=<token>`
+4. Extrae `email`, `name`, `sub` (Google ID) de la respuesta
+5. Busca usuario por `googleId` o `email`:
+   - Si existe por `googleId` → login directo
+   - Si existe por `email` (cuenta manual) → vincular `googleId` y login
+   - Si no existe → crear usuario nuevo con `emailVerifiedAt = now()` (Google ya verificó el email), sin `passwordHash`
+6. Devuelve el mismo shape que `POST /auth/login`: `{ user, token }`
+
+**Variables de entorno necesarias:** Ninguna en backend (la verificación es pública vía tokeninfo endpoint). El `GOOGLE_CLIENT_ID` solo se necesita en frontend.
+
+---
+
+### EX10-F — Frontend: botón "Continuar con Google"
+**Archivos:**
+- `frontend/app/login/LoginClient.tsx`
+- `frontend/app/register/RegisterClient.tsx`
+- `frontend/lib/api.ts` (agregar `loginWithGoogle()`)
+
+**Complejidad:** Baja-Media
+**Dependencia:** EX10-B completado
+
+**Pasos:**
+1. Instalar `@react-oauth/google`: `npm install @react-oauth/google`
+2. Envolver el layout en `<GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID}>` en `app/layout.tsx`
+3. Agregar variable `NEXT_PUBLIC_GOOGLE_CLIENT_ID` en Vercel
+4. En LoginClient y RegisterClient: agregar botón `<GoogleLogin onSuccess={handleGoogleSuccess} />` con estilos del sitio
+5. `handleGoogleSuccess` llama `POST /api/v1/auth/google` con el credential y guarda el JWT en AuthContext
+
+**Variable de entorno frontend:** `NEXT_PUBLIC_GOOGLE_CLIENT_ID` (obtenida de Google Cloud Console)
+
+---
+
+### Configuración Google Cloud Console (manual, una sola vez)
+
+1. Crear proyecto en [console.cloud.google.com](https://console.cloud.google.com)
+2. Habilitar **Google Identity API**
+3. Crear credencial **OAuth 2.0 Client ID** tipo "Web application"
+4. Agregar en "Authorized JavaScript origins":
+   - `https://www.jerseysraw.com`
+   - `http://localhost:3000` (para dev)
+5. No se necesitan "Authorized redirect URIs" (flujo con popup, no redirect)
+6. Copiar el **Client ID** → agregar como `NEXT_PUBLIC_GOOGLE_CLIENT_ID` en Vercel y en `.env.local`
+
+---
+
+### Estado
+
+| Fase | Tarea | Estado |
+|------|-------|--------|
+| Backend | `POST /auth/google` + migración `googleId` | ❌ Pendiente |
+| Frontend | Botón Google en Login y Register | ❌ Pendiente |
+| Config | Google Cloud Console + env vars | ❌ Pendiente |
