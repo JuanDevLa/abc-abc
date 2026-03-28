@@ -7,7 +7,8 @@ const router = Router();
 
 // ─── GET /admin/stock ─────────────────────────────────────────────────────────
 // Todos los productos con sus variantes, stock actual, vendido y reposiciones.
-router.get('/admin/stock', requireAuth, async (_req: Request, res: Response) => {
+router.get('/admin/stock', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
   try {
     // Detectar si la tabla StockMovement ya existe
     let hasStockMovements = false;
@@ -103,6 +104,7 @@ router.get('/admin/stock', requireAuth, async (_req: Request, res: Response) => 
 // ─── POST /admin/stock/:variantId/restock ─────────────────────────────────────
 // Reponer stock: incrementa variant.stock y registra un StockMovement.
 router.post('/admin/stock/:variantId/restock', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
   const { variantId } = req.params;
   const quantity = Number(req.body.quantity);
   const notes: string = req.body.notes ?? '';
@@ -145,7 +147,8 @@ router.post('/admin/stock/:variantId/restock', requireAuth, async (req: Request,
 
 // ─── GET /admin/stock/report/pdf ─────────────────────────────────────────────
 // Descarga PDF con el inventario completo.
-router.get('/admin/stock/report/pdf', requireAuth, async (_req: Request, res: Response) => {
+router.get('/admin/stock/report/pdf', requireAuth, async (req: Request, res: Response) => {
+  if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
   try {
     const products = await prisma.product.findMany({
       select: {

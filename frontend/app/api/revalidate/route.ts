@@ -3,6 +3,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
+    const token = request.headers.get('x-revalidate-token');
+    if (!process.env.REVALIDATE_SECRET || token !== process.env.REVALIDATE_SECRET) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
     const paths = searchParams.getAll('path');
 

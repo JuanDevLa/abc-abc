@@ -199,16 +199,17 @@ router.post('/orders', createOrderLimiter, async (req: Request, res: Response) =
             });
 
             // 7c. Descontar stock ATÓMICAMENTE solo para ítems con stock local
+            // Usamos updateMany con WHERE stock >= quantity para evitar race conditions:
+            // si dos órdenes concurrentes llegan aquí, solo una actualiza (count=1),
+            // la otra recibe count=0 y hace fallback a dropshipping.
             for (const item of finalOrderItems) {
                 if (item._shouldDecrementStock) {
-                    try {
-                        await tx.productVariant.update({
-                            where: { id: item._variantId },
-                            data: { stock: { decrement: item._quantity } },
-                        });
-                    } catch (err) {
-                        // Si el decremento falla (race condition extrema), marcar como dropshipping
-                        console.warn(`⚠️ Decremento falló para variante ${item._variantId}, fallback a dropshipping`);
+                    const updated = await tx.productVariant.updateMany({
+                        where: { id: item._variantId, stock: { gte: item._quantity } },
+                        data: { stock: { decrement: item._quantity } },
+                    });
+                    if (updated.count === 0) {
+                        // Stock insuficiente por race condition → fallback a dropshipping
                         item.isDropshippable = true;
                     }
                 }
@@ -603,7 +604,7 @@ router.get('/orders/:id/pdf', requireAuth, async (req: Request, res: Response) =
 
         if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
 
-        const isOwner = order.userId === req.user!.sub || order.email === req.user!.sub;
+        const isOwner = order.userId === req.user!.sub;
         const isAdmin = req.user!.role === 'admin';
         if (!isOwner && !isAdmin) return res.status(403).json({ error: 'Acceso denegado' });
 

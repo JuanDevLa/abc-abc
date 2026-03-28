@@ -248,6 +248,7 @@ router.get('/products/:idOrSlug', async (req, res, next) => {
 
 // POST /products — Crear
 router.post('/products', requireAuth, async (req, res, next) => {
+    if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
     try {
         // Resolver categoría
         let validCategoryId = req.body.categoryId;
@@ -356,6 +357,7 @@ const UpdateProductSchema = z.object({
 
 // PUT /products/:id — Actualizar
 router.put('/products/:id', requireAuth, async (req, res, next) => {
+    if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
     const { id } = req.params;
     try {
         const body = UpdateProductSchema.parse(req.body);
@@ -466,6 +468,7 @@ router.put('/products/:id', requireAuth, async (req, res, next) => {
 
 // DELETE /products/:id — Eliminar
 router.delete('/products/:id', requireAuth, async (req, res, next) => {
+    if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
     try {
         await prisma.product.delete({ where: { id: req.params.id } });
         res.json({ success: true });

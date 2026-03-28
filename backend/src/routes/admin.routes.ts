@@ -1,12 +1,21 @@
 // src/routes/admin.routes.ts
 import { Router, type Request, type Response } from 'express';
 import bcrypt from 'bcrypt';
+import rateLimit from 'express-rate-limit';
 import { generateToken } from '../lib/auth.js';
 import { env } from '../lib/env.js';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 import { generateOrderPDF, generateReportPDF } from '../services/pdf.service.js';
 import { getRewardConfig } from '../services/rewards.service.js';
+
+const adminLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Demasiados intentos. Espera 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 const router = Router();
 
@@ -82,7 +91,7 @@ router.get('/customers/:id', requireAuth, async (req: Request, res: Response) =>
   res.json(user);
 });
 
-router.post('/login', async (req, res) => {
+router.post('/login', adminLoginLimiter, async (req, res) => {
   const { password } = req.body;
 
   if (!password) {

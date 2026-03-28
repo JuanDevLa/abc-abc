@@ -114,10 +114,28 @@ app.use('/api/v1', stockRoutes);
 app.use(errorHandler);
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));
 
+/* ─── Unhandled errors ─── */
+process.on('unhandledRejection', (reason) => {
+  console.error('[unhandledRejection]', reason);
+});
+process.on('uncaughtException', (err) => {
+  console.error('[uncaughtException]', err);
+  process.exit(1);
+});
+
 /* ─── Start ─── */
-app.listen(env.PORT, () => {
+const server = app.listen(env.PORT, () => {
   console.log(`API running on http://localhost:${env.PORT}`);
 });
+
+function shutdown() {
+  server.close(async () => {
+    await prisma.$disconnect();
+    process.exit(0);
+  });
+}
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 /* ─── Cron: liberar stock de órdenes abandonadas (cada 30 min) ─── */
 cron.schedule('*/30 * * * *', async () => {
