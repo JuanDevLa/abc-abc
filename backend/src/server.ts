@@ -33,6 +33,7 @@ import stockRoutes from './routes/stock.routes.js';
 import crmRoutes from './routes/crm.routes.js';
 
 const app = express();
+app.set('trust proxy', 1);
 
 /* ─── Webhook de Stripe (ANTES de express.json) ─── */
 // Stripe necesita el body crudo (Buffer) para verificar la firma HMAC.

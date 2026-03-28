@@ -30,7 +30,7 @@ const Newsletter = () => (
           <input type="checkbox" className="mt-1 accent-[#F8C37C] w-4 h-4 flex-shrink-0" />
           <span className="text-gray-400 text-xs leading-relaxed">
             Al registrarme acepto el{' '}
-            <Link href="/aviso-de-privacidad" className="text-white underline hover:text-[#F8C37C] transition-colors">
+            <Link href="/privacy" className="text-white underline hover:text-[#F8C37C] transition-colors">
               Aviso de Privacidad
             </Link>{' '}
             y el tratamiento de los datos personales.
@@ -42,7 +42,7 @@ const Newsletter = () => (
           <input type="checkbox" className="mt-1 accent-[#F8C37C] w-4 h-4 flex-shrink-0" />
           <span className="text-gray-400 text-xs leading-relaxed">
             Al registrarme acepto los{' '}
-            <Link href="/terminos-y-condiciones" className="text-white underline hover:text-[#F8C37C] transition-colors">
+            <Link href="/terms" className="text-white underline hover:text-[#F8C37C] transition-colors">
               Términos y Condiciones
             </Link>.
           </span>
