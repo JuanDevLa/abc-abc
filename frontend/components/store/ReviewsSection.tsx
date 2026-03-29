@@ -755,12 +755,12 @@ export default function ReviewsSection({
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm cursor-zoom-out"
           onClick={() => setLightboxImg(null)}
         >
-          <div className="relative max-w-3xl w-full">
+          <div className="relative max-w-3xl w-full flex items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={resolveImg(lightboxImg, 1200)}
               alt="Foto del cliente"
-              className="w-full h-auto rounded-xl shadow-2xl"
+              className="max-h-[90vh] w-auto max-w-full object-contain rounded-xl shadow-2xl"
             />
             <button
               onClick={(e) => {
