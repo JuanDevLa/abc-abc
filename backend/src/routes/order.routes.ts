@@ -1,5 +1,6 @@
 // src/routes/order.routes.ts
 import { Router, Request, Response } from 'express';
+import { randomBytes } from 'crypto';
 import rateLimit from 'express-rate-limit';
 import { prisma } from '../lib/prisma.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
@@ -26,9 +27,8 @@ const createOrderLimiter = rateLimit({
 
 /* ─── Generar número de orden único ─── */
 function generateOrderNumber(): string {
-    const now = new Date();
-    const date = now.toISOString().slice(0, 10).replace(/-/g, '');
-    const rand = Math.random().toString(36).substring(2, 6).toUpperCase();
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const rand = randomBytes(3).toString('hex').toUpperCase();
     return `JR-${date}-${rand}`;
 }
 

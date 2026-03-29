@@ -6,9 +6,9 @@ import { type CorsOptions } from 'cors';
  * Additional origins can be added via the CORS_ORIGIN env var (comma-separated).
  */
 const DEFAULT_ORIGINS = [
-  'http://localhost:3000',       // frontend local
-  'https://jerseysraw.com',      // producción
-  'https://www.jerseysraw.com',  // con www
+  ...(process.env.NODE_ENV !== 'production' ? ['http://localhost:3000'] : []),
+  'https://jerseysraw.com',
+  'https://www.jerseysraw.com',
 ];
 
 function getAllowedOrigins(): string[] {

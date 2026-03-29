@@ -3,10 +3,8 @@ import { PrismaClient } from '@prisma/client';
 const EXPIRY_HOURS = 12;
 
 export async function releaseAbandonedStock(prisma: PrismaClient) {
-  const cutoff = new Date(Date.now() - EXPIRY_HOURS * 60 * 60 * 1000);
-
   const abandonedOrders = await prisma.order.findMany({
-    where: { status: 'PENDING_PAYMENT', createdAt: { lt: cutoff } },
+    where: { status: 'PENDING_PAYMENT', expiresAt: { lt: new Date() } },
     include: { items: true },
   });
 

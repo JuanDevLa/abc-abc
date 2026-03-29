@@ -560,29 +560,21 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 
 ### 6A — SEGURIDAD ❌ Pendiente
 
-#### 6A-1 [HIGH] Rate limiting en login/register
-**Archivos:** `auth.routes.ts`, `admin.routes.ts`
-**Problema:** Los 3 endpoints de autenticación (`POST /auth/login`, `POST /auth/register`, `POST /admin/login`) no tienen rate limiting propio. El global de 100/min es insuficiente. Registro sin rate limit permite crear cuentas masivas y explotar los 300 pts de bienvenida.
-**Fix:** Agregar `loginLimiter` (10 req/15min), `registerLimiter` (5 req/hora), `adminLoginLimiter` (5 req/15min).
+#### ✅ 6A-1 [HIGH] Rate limiting en login/register
+**Fix aplicado:** `loginLimiter` (10/15min), `registerLimiter` (5/hora), `adminLoginLimiter` (5/15min) ya presentes en `auth.routes.ts` y `admin.routes.ts`. Verificado 2026-03-28.
 
-#### 6A-2 [HIGH] IDOR en descarga PDF de orden
-**Archivo:** `order.routes.ts:606`
-**Problema:** `order.email === req.user!.sub` siempre es falso porque `sub` es UUID, no email. Cualquier usuario autenticado puede descargar el PDF de cualquier orden si adivina el UUID.
-**Fix:** Usar solo `order.userId === req.user!.sub` + verificar admin.
+#### ✅ 6A-2 [HIGH] IDOR en descarga PDF de orden
+**Fix aplicado:** `order.routes.ts:607` usa `order.userId === req.user!.sub` + `role === 'admin'` correctamente. Verificado 2026-03-28.
 
 #### ✅ 6A-3 [HIGH] Analytics views sin admin check
 **Archivo:** `analytics.routes.ts:75`
 **Fix aplicado:** Agregado `if (!adminOnly(req, res)) return;` — (2026-03-26)
 
-#### 6A-4 [HIGH] Endpoint /api/revalidate sin autenticación
-**Archivo:** `frontend/app/api/revalidate/route.ts`
-**Problema:** Cualquiera puede invalidar el caché ISR de cualquier página sin token.
-**Fix:** Agregar verificación de `x-revalidate-token` contra `REVALIDATE_SECRET` env var.
+#### ✅ 6A-4 [HIGH] Endpoint /api/revalidate sin autenticación
+**Fix aplicado:** `app/api/revalidate/route.ts` ya verifica `x-revalidate-token` contra `REVALIDATE_SECRET`. Verificado 2026-03-28.
 
-#### 6A-5 [MEDIUM] Math.random() en número de orden
-**Archivo:** `order.routes.ts:28-33`
-**Problema:** Solo 36^4 = ~1.7M combinaciones/día. Predecible + enumerable.
-**Fix:** Usar `crypto.randomBytes(4).toString('hex')` y extender a 6 caracteres.
+#### ✅ 6A-5 [MEDIUM] Math.random() en número de orden
+**Fix aplicado:** `order.routes.ts` usa `crypto.randomBytes(3).toString('hex')` — 6 chars hex, ~16.7M combinaciones/día, criptográficamente seguro. 2026-03-28.
 
 #### 6A-6 [MEDIUM] CORS permite requests sin Origin en producción
 **Archivo:** `corsConfig.ts:23-26`
@@ -600,14 +592,11 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 
 ### 6B — BACKEND PRODUCTION READINESS ❌ Pendiente
 
-#### 6B-1 [CRITICAL] No graceful shutdown
-**Archivo:** `server.ts:117-128`
-**Problema:** No captura `http.Server`, no maneja SIGTERM/SIGINT. En deploy, requests en vuelo se pierden.
-**Fix:** `const server = app.listen(...)`, `process.on('SIGTERM', () => { server.close(); prisma.$disconnect(); })`.
+#### ✅ 6B-1 [CRITICAL] No graceful shutdown
+**Fix aplicado:** `server.ts` ya captura `http.Server` y maneja SIGTERM/SIGINT con `server.close()` + `prisma.$disconnect()`. Verificado 2026-03-28.
 
-#### 6B-2 [CRITICAL] No unhandledRejection handler
-**Archivo:** `server.ts` (ausente)
-**Fix:** Agregar `process.on('unhandledRejection', ...)` y `process.on('uncaughtException', ...)`.
+#### ✅ 6B-2 [CRITICAL] No unhandledRejection handler
+**Fix aplicado:** `server.ts` ya tiene `process.on('unhandledRejection', ...)` y `process.on('uncaughtException', ...)`. Verificado 2026-03-28.
 
 #### 6B-3 [CRITICAL] Stock race condition
 **Archivo:** `order.routes.ts:173-272`
@@ -619,33 +608,27 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Problema:** Si `STRIPE_SECRET_KEY` falta en producción, el server arranca OK pero pagos fallan.
 **Fix:** Log WARN al startup si vars de pago/email faltan, o hacerlas required en production.
 
-#### 6B-5 [HIGH] Mailer leaks reset codes a stdout
-**Archivo:** `mailer.ts:264-266`
-**Fix:** Solo logear códigos cuando `NODE_ENV === 'development'`, nunca por `useConsole`.
+#### ✅ 6B-5 [HIGH] Mailer leaks reset codes a stdout
+**Fix aplicado:** `mailer.ts` solo loguea `[MAIL-DEV] Para: email | Asunto: subject` cuando no hay API key — nunca imprime códigos. Verificado 2026-03-28.
 
-#### 6B-6 [HIGH] Prisma query logging en producción
-**Archivo:** `prisma.ts:9`
-**Fix:** `log: process.env.NODE_ENV === 'production' ? ['error', 'warn'] : ['query', 'error', 'warn']`.
+#### ✅ 6B-6 [HIGH] Prisma query logging en producción
+**Fix aplicado:** `prisma.ts:9` ya tiene logging condicional por `NODE_ENV`. Verificado 2026-03-28.
 
-#### 6B-7 [HIGH] Cron job usa createdAt en vez de expiresAt
-**Archivo:** `jobs/releaseAbandonedStock.ts:6-9`
-**Fix:** Usar `WHERE status = 'PENDING_PAYMENT' AND expiresAt < NOW()`.
+#### ✅ 6B-7 [HIGH] Cron job usa createdAt en vez de expiresAt
+**Fix aplicado:** `releaseAbandonedStock.ts` ahora usa `expiresAt: { lt: new Date() }`. 2026-03-28.
 
-#### 6B-8 [HIGH] CORS permite localhost en producción
-**Archivo:** `corsConfig.ts:8-11`
-**Fix:** Solo incluir `localhost:3000` cuando `NODE_ENV !== 'production'`.
+#### ✅ 6B-8 [HIGH] CORS permite localhost en producción
+**Fix aplicado:** `corsConfig.ts` excluye `localhost:3000` cuando `NODE_ENV === 'production'`. 2026-03-28.
 
 #### 6B-9 [HIGH] Admin config sin validación
 **Archivo:** `admin.routes.ts:196-219`
 **Fix:** Agregar Zod validation con min/max en campos numéricos de reward config.
 
-#### 6B-10 [HIGH] POST/PUT/DELETE /products sin admin check
-**Archivo:** `product.routes.ts:250,358,468`
-**Fix:** Agregar `if (req.user?.role !== 'admin') return res.status(403)...`
+#### ✅ 6B-10 [HIGH] POST/PUT/DELETE /products sin admin check
+**Fix aplicado:** `product.routes.ts` ya tiene `requireAuth` + `role !== 'admin'` → 403 en todas las rutas write. Verificado 2026-03-28.
 
-#### 6B-11 [HIGH] stock.routes.ts sin admin check
-**Archivo:** `stock.routes.ts:10,105,148`
-**Fix:** Agregar admin role check en cada handler.
+#### ✅ 6B-11 [HIGH] stock.routes.ts sin admin check
+**Fix aplicado:** `stock.routes.ts` ya tiene `requireAuth` + `role !== 'admin'` → 403 en todos los handlers. Verificado 2026-03-28.
 
 #### 6B-12 [MEDIUM] Webhook idempotency — duplicate reward points
 **Archivos:** `webhook.routes.ts:100-113`, `rewards.service.ts`
@@ -659,9 +642,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `prisma/schema.prisma`
 **Fix:** Agregar `@@index` en: `Club.leagueId`, `ProductImage.productId`, `PurchaseOrderItem.purchaseOrderId`, `PurchaseOrderItem.variantId`, `RewardTransaction.orderId`.
 
-#### 6B-15 [MEDIUM] morgan('dev') en producción
-**Archivo:** `server.ts:69`
-**Fix:** Usar `morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev')`.
+#### ✅ 6B-15 [MEDIUM] morgan('dev') en producción
+**Fix aplicado:** `server.ts` usa `morgan('combined')` en producción y `morgan('dev')` en desarrollo. 2026-03-28.
 
 #### 6B-16 [LOW] JWT 7-day expiry sin refresh
 **Archivo:** `auth.ts:21`
@@ -678,9 +660,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 
 ### 6C — SEO & INDEXING ❌ Pendiente
 
-#### 6C-1 [CRITICAL] Zero JSON-LD structured data
-**Impacto:** Sin rich snippets en Google, sin Google Shopping, sin estrellitas en resultados.
-**Fix:** Agregar `Product` schema en `/product/[id]/page.tsx`, `Organization` + `WebSite` en `layout.tsx`, `BreadcrumbList` en product pages, `FAQPage` en `/help`.
+#### ✅ 6C-1 [CRITICAL] Zero JSON-LD structured data
+**Fix aplicado:** `layout.tsx` tiene `Organization` + `WebSite`. `product/[id]/page.tsx` tiene `Product` + `BreadcrumbList`. Verificado 2026-03-28.
 
 #### 6C-2 [CRITICAL] No listo para Google Merchant Center
 **Problema:** Sin Product structured data con `offers` (price, currency MXN, availability, condition), sin GTIN/MPN/SKU, sin brand.
@@ -690,20 +671,17 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `frontend/public/`
 **Fix:** Crear `og-image.jpg` (1200x630px) y `apple-touch-icon.png` (180x180px) con branding de Jerseys Raw.
 
-#### 6C-4 [HIGH] Collections pages sin metadata
-**Archivo:** `frontend/app/collections/[slug]/page.tsx`
-**Fix:** Agregar `generateMetadata` como tienen teams y leagues.
+#### ✅ 6C-4 [HIGH] Collections pages sin metadata
+**Fix aplicado:** `collections/[slug]/page.tsx` ya tiene `generateMetadata` con canonical. Verificado 2026-03-28.
 
-#### 6C-5 [HIGH] No canonical URLs en ninguna página
-**Fix:** Agregar `alternates: { canonical: '...' }` en metadata de todas las páginas públicas.
+#### ✅ 6C-5 [HIGH] No canonical URLs en ninguna página
+**Fix aplicado:** `alternates.canonical` presente en product, collections, wishlist y otras páginas públicas. Verificado 2026-03-28.
 
-#### 6C-6 [HIGH] lang="es" → debería ser "es-MX"
-**Archivo:** `layout.tsx:57`
-**Fix:** Cambiar a `lang="es-MX"`.
+#### ✅ 6C-6 [HIGH] lang="es" → debería ser "es-MX"
+**Fix aplicado:** `layout.tsx` ya tiene `lang="es-MX"`. Verificado 2026-03-28.
 
-#### 6C-7 [HIGH] Wishlist page sin metadata
-**Archivo:** `frontend/app/wishlist/page.tsx`
-**Fix:** Agregar layout.tsx con metadata o server component wrapper.
+#### ✅ 6C-7 [HIGH] Wishlist page sin metadata
+**Fix aplicado:** `app/wishlist/layout.tsx` ya existe con metadata y canonical. Verificado 2026-03-28.
 
 #### 6C-8 [MEDIUM] Product OG type "website" → "product"
 **Archivo:** `frontend/app/product/[id]/page.tsx:52`
@@ -733,29 +711,22 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 
 ### 6D — FRONTEND UX, CRO & MARKETING ❌ Pendiente
 
-#### 6D-1 [CRITICAL] Newsletter form no funciona
-**Archivo:** `frontend/components/Newsletter.tsx`
-**Problema:** Sin onSubmit, sin API call. Cada email capturado se pierde.
-**Fix:** Crear endpoint backend `POST /api/v1/newsletter` (o integrar Mailchimp/SendGrid) + wiring del form.
+#### ✅ 6D-1 [CRITICAL] Newsletter form no funciona
+**Fix aplicado:** `Newsletter.tsx` ya tiene `handleSubmit` que llama a `POST /api/v1/newsletter`. Backend tiene endpoint completo con Zod. Verificado 2026-03-28.
 
 #### 6D-2 [CRITICAL] Zero conversion tracking (GA4, GTM, Facebook Pixel)
 **Archivo:** `frontend/app/layout.tsx`
 **Problema:** Sin tracking = sin medición de ROAS, sin bid optimization, sin audiences.
 **Fix:** Agregar GTM via `next/script` en layout. Disparar evento `purchase` en confirmation page.
 
-#### 6D-3 [CRITICAL] Checkout sin labels en inputs
-**Archivo:** `frontend/app/checkout/page.tsx:261-299`
-**Problema:** Solo placeholders, sin `<label>` ni `aria-label`. Inaccesible + mala UX.
-**Fix:** Agregar `<label>` visibles o floating labels arriba de cada input.
+#### ✅ 6D-3 [CRITICAL] Checkout sin labels en inputs
+**Fix aplicado:** `checkout/page.tsx` ya tiene `<label>` en todos los inputs (email, nombre, apellido, dirección, ciudad, estado, CP, teléfono). Verificado 2026-03-28.
 
-#### 6D-4 [HIGH] No indicadores de escasez/urgencia en producto
-**Archivo:** `ProductDetailClient.tsx`
-**Problema:** `localStock` se calcula pero nunca se muestra al usuario.
-**Fix:** Cuando `localStock > 0 && localStock <= 5`, mostrar "¡Solo quedan X — Envío Rápido!".
+#### ✅ 6D-4 [HIGH] No indicadores de escasez/urgencia en producto
+**Fix aplicado:** `ProductDetailClient.tsx` muestra pill ámbar animada "¡Solo quedan X unidades — Envío rápido!" cuando `localStock <= 5 && !isDropshippable`. 2026-03-28.
 
-#### 6D-5 [HIGH] Cart sin progress bar de envío gratis
-**Archivo:** `CartSidebar.tsx`
-**Fix:** Agregar barra de progreso: "Te faltan $X para envío gratis" (umbral: $999 MXN).
+#### ✅ 6D-5 [HIGH] Cart sin progress bar de envío gratis
+**Fix aplicado:** Barra de progreso en `CartSidebar.tsx` y `checkout/page.tsx`. Umbral $999 MXN. Badge verde al alcanzarlo. 2026-03-28.
 
 #### 6D-6 [HIGH] Checkout sin inline validation
 **Archivo:** `checkout/page.tsx`
@@ -769,9 +740,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `checkout/page.tsx`
 **Fix:** Agregar `text-base` (16px) explícito a todos los inputs. Coupon input usa `text-sm` → cambiar.
 
-#### 6D-9 [HIGH] Cart delete button invisible en mobile
-**Archivo:** `CartSidebar.tsx:66`
-**Fix:** Hacer visible siempre en mobile: `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`.
+#### ✅ 6D-9 [HIGH] Cart delete button invisible en mobile
+**Fix aplicado:** `CartSidebar.tsx` usa `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`. 2026-03-28.
 
 #### 6D-10 [HIGH] No loading.tsx en ninguna ruta
 **Fix:** Crear `loading.tsx` con skeletons para: `/catalog`, `/checkout`, `/product/[id]`, `/account`.
@@ -779,9 +749,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### 6D-11 [HIGH] Hero/ProductCarousel usan raw `<img>`
 **Fix:** Usar `next/image` con `priority` en primer slide del Hero, `loading="lazy"` en el resto.
 
-#### 6D-12 [HIGH] Links sociales placeholder href="#"
-**Archivo:** `Footer.tsx:96-107`
-**Fix:** Reemplazar con URLs reales de redes sociales. Si no existen, crearlas.
+#### ✅ 6D-12 [HIGH] Links sociales placeholder href="#"
+**Estado:** Instagram ya tiene URL real. Facebook/Twitter/YouTube sin cuentas activas — descartado por el usuario. 2026-03-28.
 
 #### 6D-13 [HIGH] Teléfono placeholder en footer
 **Archivo:** `Footer.tsx:91`

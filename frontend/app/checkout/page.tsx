@@ -487,6 +487,27 @@ export default function CheckoutPage() {
 
                             <div className="h-px bg-gray-200 w-full mb-6" />
 
+                            {/* Barra de envío gratis */}
+                            {(() => {
+                                const FREE_THRESHOLD = 999;
+                                const remaining = Math.max(0, FREE_THRESHOLD - subtotal);
+                                const progress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
+                                return remaining === 0 ? (
+                                    <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2 mb-4">
+                                        <span className="text-xs font-bold text-emerald-600">¡Envío gratis desbloqueado!</span>
+                                    </div>
+                                ) : (
+                                    <div className="mb-4">
+                                        <p className="text-xs text-th-secondary mb-1.5">
+                                            Te faltan <span className="font-bold text-th-primary">${remaining.toFixed(0)}</span> para envío gratis
+                                        </p>
+                                        <div className="w-full h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                                            <div className="h-full bg-th-primary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                                        </div>
+                                    </div>
+                                );
+                            })()}
+
                             <div className="space-y-3 text-sm text-th-secondary mb-6">
                                 <div className="flex justify-between">
                                     <span>Subtotal</span>

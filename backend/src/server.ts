@@ -68,7 +68,7 @@ app.use(helmet({
 }));
 
 app.use(express.json({ limit: '10mb' }));
-app.use(morgan('dev'));
+app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 app.use(cors(corsOptions));
 
 const limiter = rateLimit({

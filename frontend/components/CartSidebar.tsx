@@ -63,7 +63,7 @@ export default function CartSidebar() {
                                 {/* Eliminar */}
                                 <button
                                     onClick={() => removeItem(item.id)}
-                                    className="absolute top-2 right-2 p-1.5 bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-colors opacity-0 group-hover:opacity-100"
+                                    className="absolute top-2 right-2 p-1.5 bg-white hover:bg-red-50 text-gray-400 hover:text-red-500 rounded-lg transition-colors opacity-100 sm:opacity-0 sm:group-hover:opacity-100"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -118,6 +118,29 @@ export default function CartSidebar() {
                 {/* FOOTER */}
                 {items.length > 0 && (
                     <div className="border-t border-gray-200 bg-white p-6 space-y-4">
+
+                        {/* Barra de envío gratis */}
+                        {(() => {
+                            const FREE_THRESHOLD = 999;
+                            const subtotal = getSubtotal();
+                            const remaining = Math.max(0, FREE_THRESHOLD - subtotal);
+                            const progress = Math.min(100, (subtotal / FREE_THRESHOLD) * 100);
+                            return remaining === 0 ? (
+                                <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-3 py-2">
+                                    <span className="text-xs font-bold text-emerald-600">¡Envío gratis desbloqueado!</span>
+                                </div>
+                            ) : (
+                                <div>
+                                    <p className="text-xs text-gray-500 mb-1.5">
+                                        Te faltan <span className="font-bold text-black">${remaining.toFixed(0)}</span> para envío gratis
+                                    </p>
+                                    <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                                        <div className="h-full bg-black rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                                    </div>
+                                </div>
+                            );
+                        })()}
+
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-gray-500">Subtotal</span>
                             <span className="text-xl font-bold text-black">${getSubtotal().toFixed(2)}</span>
