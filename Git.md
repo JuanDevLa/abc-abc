@@ -35,6 +35,23 @@ git checkout v1.2
 
 ---
 
+## v1.3.1 — 2026-03-30
+**Commit:** `7423475`
+**Tipo:** Hotfix
+
+### Cambios
+| Área | Archivo | Cambio |
+|------|---------|--------|
+| Admin | `admin/products/[id]/page.tsx` | Fix 400 al guardar producto con etiquetas — `ProductTag` no tiene campo `.id` (PK compuesta), se usaba `product.tagIds` que ya viene calculado correctamente desde la API |
+| API | `lib/api.ts` | Fix `[object Object]` en mensajes de error — ahora stringifica objetos Zod en lugar de mostrar `[object Object]` |
+
+### Revertir a v1.3
+```bash
+git checkout v1.3
+```
+
+---
+
 ## v1.2 — 2026-03-29
 **Commit:** `3b27f45`
 **Tipo:** Bug fix + Backend hardening
