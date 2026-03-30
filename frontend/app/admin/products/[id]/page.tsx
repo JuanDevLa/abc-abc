@@ -108,7 +108,7 @@ export default function EditProductPage({ params }: { params: { id: string } }) 
         categoryId:     product.categoryId || "",
         seasonId:       product.seasonId || "",
         clubId:         product.clubId || "",
-        tagIds:         product.tags?.map((t: any) => t.id) || [],
+        tagIds:         product.tagIds || [],
         globalAllowsNameNumber: product.variants?.length > 0
           ? product.variants.every((v: any) => v.allowsNameNumber)
           : true,
