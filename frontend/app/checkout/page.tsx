@@ -210,7 +210,7 @@ export default function CheckoutPage() {
     };
 
 
-    const inputClass = "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-black focus:border-black outline-none transition-colors placeholder:text-gray-400";
+    const inputClass = "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-black focus:border-black outline-none transition-colors placeholder:text-gray-400";
 
     return (
         <div className="min-h-screen bg-theme-bg text-th-primary font-sans pb-20 transition-colors duration-300">
@@ -558,7 +558,7 @@ export default function CheckoutPage() {
                                                 value={couponInput}
                                                 onChange={(e) => { setCouponInput(e.target.value.toUpperCase()); setCouponError(""); }}
                                                 onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyCoupon(couponInput))}
-                                                className="flex-1 bg-theme-bg border border-th-border/20 rounded-xl px-3 py-2 text-sm font-mono uppercase tracking-widest focus:outline-none focus:border-accent transition-colors placeholder:normal-case placeholder:tracking-normal"
+                                                className="flex-1 bg-theme-bg border border-th-border/20 rounded-xl px-3 py-2 text-base font-mono uppercase tracking-widest focus:outline-none focus:border-accent transition-colors placeholder:normal-case placeholder:tracking-normal"
                                             />
                                             <button
                                                 type="button"

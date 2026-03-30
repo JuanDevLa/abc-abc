@@ -451,7 +451,9 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
               <div className="grid grid-cols-2 gap-2 w-[60%]">
                 {(['fan', 'player'] as const).map(ver => {
                   const hasFastStock = variants.some((v: any) =>
-                    (v.isPlayerVersion === (ver === 'player')) && v.stock > 0
+                    (v.isPlayerVersion === (ver === 'player')) &&
+                    (!selectedSize || v.size === selectedSize) &&
+                    v.stock > 0
                   );
                   return (
                     <button
@@ -478,7 +480,10 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
               <div className="grid grid-cols-2 gap-2 w-[60%]">
                 {(['SHORT', 'LONG'] as const).map(sl => {
                   const hasFastStock = variants.some((v: any) =>
-                    (v.sleeve || 'SHORT') === sl && v.stock > 0
+                    (v.sleeve || 'SHORT') === sl &&
+                    (!selectedSize || v.size === selectedSize) &&
+                    (v.isPlayerVersion === (selectedVersion === 'player')) &&
+                    v.stock > 0
                   );
                   return (
                     <button

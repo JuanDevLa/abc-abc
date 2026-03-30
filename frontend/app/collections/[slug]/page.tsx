@@ -21,7 +21,7 @@ async function getCollectionProducts(slug: string) {
   try {
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/v1/products?tags=${slug}&limit=100`,
-      { cache: 'no-store' }
+      { next: { revalidate: 60 } }
     );
     if (!res.ok) return { items: [] };
     return res.json();

@@ -20,7 +20,7 @@ async function getCatalogProducts(search?: string) {
 
     const res = await fetch(
       `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/v1/products?${params.toString()}`,
-      { cache: 'no-store' }
+      { next: { revalidate: 60 } }
     );
     if (!res.ok) return { items: [], pagination: { total: 0 } };
     return res.json();

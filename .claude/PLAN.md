@@ -580,9 +580,9 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `corsConfig.ts:23-26`
 **Fix:** Rechazar requests sin Origin cuando `NODE_ENV === 'production'`.
 
-#### 6A-7 [MEDIUM] express.json limit 10mb excesivo
-**Archivo:** `server.ts:68`
-**Fix:** Reducir a `50kb` o `100kb`. Endpoints que necesiten más usan su propio parser.
+#### ✅ 6A-7 [MEDIUM] express.json limit 10mb excesivo
+**Archivo:** `server.ts:70`
+**Fix aplicado:** Reducido a `100kb`. 2026-03-29.
 
 #### 6A-8 [MEDIUM] DATE_TRUNC con param de usuario en raw SQL
 **Archivo:** `analytics.routes.ts:458-467`
@@ -697,12 +697,12 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### 6C-11 [MEDIUM] No generateStaticParams en rutas dinámicas
 **Fix:** Agregar `generateStaticParams` en product, teams, leagues, collections para pre-build.
 
-#### 6C-12 [MEDIUM] Sitemap incompleto
+#### ✅ 6C-12 [MEDIUM] Sitemap incompleto
 **Archivo:** `frontend/app/sitemap.ts`
-**Fix:** Agregar `/reviews`, `/account-benefits`.
+**Fix aplicado:** Agregadas `/reviews` (weekly, 0.5) y `/account-benefits` (monthly, 0.4). 2026-03-29.
 
-#### 6C-13 [MEDIUM] Catalog usa `cache: 'no-store'`
-**Fix:** Usar ISR con `revalidate: 60` en lugar de no-store.
+#### ✅ 6C-13 [MEDIUM] Catalog usa `cache: 'no-store'`
+**Fix aplicado:** `{ next: { revalidate: 60 } }` en `catalog/page.tsx`. 2026-03-29.
 
 #### 6C-14 [LOW] Product URLs usan UUIDs en vez de slugs
 **Acción:** Considerar cambiar `/product/[id]` a `/product/[slug]` para URLs SEO-friendly.
@@ -736,9 +736,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `Hero.tsx:71`
 **Fix aplicado:** Convertido a `<Link href="/catalog">` — (2026-03-26)
 
-#### 6D-8 [HIGH] iOS auto-zoom en inputs de checkout
-**Archivo:** `checkout/page.tsx`
-**Fix:** Agregar `text-base` (16px) explícito a todos los inputs. Coupon input usa `text-sm` → cambiar.
+#### ✅ 6D-8 [HIGH] iOS auto-zoom en inputs de checkout
+**Fix aplicado:** `text-base` añadido a `inputClass` (línea 213) y coupon input (línea 561) cambiado de `text-sm` a `text-base`. 2026-03-29.
 
 #### ✅ 6D-9 [HIGH] Cart delete button invisible en mobile
 **Fix aplicado:** `CartSidebar.tsx` usa `opacity-100 sm:opacity-0 sm:group-hover:opacity-100`. 2026-03-28.

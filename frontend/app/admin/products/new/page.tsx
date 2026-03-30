@@ -70,10 +70,10 @@ export default function NewProductPage() {
     isPlayerVersion: false,
     hasLeaguePatch: false,
     hasChampionsPatch: false,
-    stock: 50,
+    stock: 1,
     isDropshippable: true,
     allowsNameNumber: true,
-    customizationPrice: 199,
+    customizationPrice: 50,
   }]);
 
   const handleAddVariant = () => {
@@ -86,15 +86,14 @@ export default function NewProductPage() {
       isPlayerVersion: false,
       hasLeaguePatch: false,
       hasChampionsPatch: false,
-      stock: 50,
+      stock: 1,
       isDropshippable: true,
       allowsNameNumber: true,
-      customizationPrice: 199,
+      customizationPrice: 50,
     }]);
   };
 
   const handleRemoveVariant = (idToRemove: string) => {
-    if (variants.length === 1) return; // Mínimo 1 variante
     setVariants(variants.filter(v => v.id !== idToRemove));
   };
 
