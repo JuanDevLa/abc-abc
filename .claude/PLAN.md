@@ -567,8 +567,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6A-5 [MEDIUM] Math.random() en número de orden
 **Fix aplicado:** `order.routes.ts` usa `crypto.randomBytes(3).toString('hex')` — 6 chars hex, ~16.7M combinaciones/día, criptográficamente seguro. 2026-03-28.
 
-#### ✅ 6A-6 [MEDIUM] CORS permite requests sin Origin en producción
-**Fix aplicado:** `corsConfig.ts` rechaza requests sin `Origin` cuando `NODE_ENV === 'production'`; en dev sigue permitiendo curl/postman. 2026-03-31.
+#### ❌ 6A-6 [MEDIUM] CORS permite requests sin Origin en producción
+**Revertido:** Next.js (Vercel) hace fetches SSR al backend (Render) sin Origin header — bloquearlos rompe todas las páginas con SSR. CORS sin Origin es inofensivo porque CORS es una protección del browser, no del servidor.
 
 #### ✅ 6A-7 [MEDIUM] express.json limit 10mb excesivo
 **Archivo:** `server.ts:70`

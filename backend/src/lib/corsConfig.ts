@@ -21,13 +21,8 @@ function getAllowedOrigins(): string[] {
 
 export const corsOptions: CorsOptions = {
   origin: function (origin, callback) {
-    // En producción rechazar requests sin Origin; en dev permitir (curl, postman)
-    if (!origin) {
-      if (process.env.NODE_ENV === 'production') {
-        return callback(new Error('Origin header requerido en producción'));
-      }
-      return callback(null, true);
-    }
+    // Permitir peticiones sin origen (server-to-server, curl, postman)
+    if (!origin) return callback(null, true);
 
     const allowed = getAllowedOrigins();
     if (allowed.includes(origin)) {
