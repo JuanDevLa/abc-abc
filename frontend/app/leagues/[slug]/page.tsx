@@ -17,22 +17,6 @@ export async function generateMetadata(
   };
 }
 
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/v1/leagues`,
-      { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.items ?? data).map((l: { slug: string }) => ({ slug: l.slug }));
-  } catch {
-    return [];
-  }
-}
-
 async function getLeagueProducts(slug: string) {
   try {
     // Nota: Necesitas asegurarte de que tu backend soporte ?league=slug

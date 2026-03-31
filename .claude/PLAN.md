@@ -678,8 +678,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivos:** Hero, ProductCarousel, FootballSlider, Footer, CartSidebar, checkout
 **Fix:** Reemplazar con `next/image` o `CldImage` para optimización automática.
 
-#### ✅ 6C-11 [MEDIUM] No generateStaticParams en rutas dinámicas
-**Fix aplicado:** `generateStaticParams` + `dynamicParams = true` en `teams/[slug]`, `leagues/[slug]`, `collections/[slug]`. Con try/catch: si la API falla en build, retorna `[]` y todo se renderiza on-demand. Omitido en `product/[id]` (demasiados productos). 2026-03-31.
+#### ❌ 6C-11 [MEDIUM] No generateStaticParams en rutas dinámicas
+**Revertido:** `ProductListing` usa `useSearchParams()` sin Suspense boundary — al agregar `generateStaticParams` Next.js intenta pre-renderizar estáticamente y truena en build. Requiere refactorizar `ProductListing` para envolverlo en `<Suspense>` antes de poder agregar static params.
 
 #### ✅ 6C-12 [MEDIUM] Sitemap incompleto
 **Archivo:** `frontend/app/sitemap.ts`

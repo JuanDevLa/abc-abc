@@ -17,22 +17,6 @@ export async function generateMetadata(
   };
 }
 
-export const dynamicParams = true;
-
-export async function generateStaticParams() {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000'}/api/v1/categories`,
-      { next: { revalidate: 3600 } }
-    );
-    if (!res.ok) return [];
-    const data = await res.json();
-    return (data.items ?? data).map((c: { slug: string }) => ({ slug: c.slug }));
-  } catch {
-    return [];
-  }
-}
-
 async function getCollectionProducts(slug: string) {
   try {
     const res = await fetch(
