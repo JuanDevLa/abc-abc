@@ -128,6 +128,24 @@ process.on('uncaughtException', (err) => {
 /* ─── Start ─── */
 const server = app.listen(env.PORT, () => {
   console.log(`API running on http://localhost:${env.PORT}`);
+
+  const missingPayment = [
+    !env.STRIPE_SECRET_KEY     && 'STRIPE_SECRET_KEY',
+    !env.STRIPE_WEBHOOK_SECRET && 'STRIPE_WEBHOOK_SECRET',
+  ].filter(Boolean) as string[];
+
+  const missingEmail = [
+    !env.SMTP_HOST && 'SMTP_HOST',
+    !env.SMTP_USER && 'SMTP_USER',
+    !env.SMTP_PASS && 'SMTP_PASS',
+  ].filter(Boolean) as string[];
+
+  if (missingPayment.length > 0) {
+    console.warn(`[WARN] Payments disabled — missing: ${missingPayment.join(', ')}`);
+  }
+  if (missingEmail.length > 0) {
+    console.warn(`[WARN] Email disabled — missing: ${missingEmail.join(', ')}`);
+  }
 });
 
 function shutdown() {

@@ -25,6 +25,15 @@ const createOrderLimiter = rateLimit({
     legacyHeaders: false,
 });
 
+/* ─── Rate limiter para consulta de órdenes (30 / 10 min por IP) ─── */
+const lookupOrderLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000,
+    max: 30,
+    message: { error: 'Demasiadas consultas. Intenta de nuevo en 10 minutos.' },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
 /* ─── Generar número de orden único ─── */
 function generateOrderNumber(): string {
     const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
@@ -335,7 +344,7 @@ router.get('/orders/mine', requireAuth, async (req: Request, res: Response) => {
 // Sin ?email: devuelve únicamente campos no-sensibles (seguro para cualquier visitante).
 // Con ?email=<correo>: si el email coincide con el de la orden, devuelve los datos completos
 // (nombre, dirección, teléfono). Esto previene la enumeración de datos personales de clientes.
-router.get('/orders/:orderNumber', async (req: Request, res: Response) => {
+router.get('/orders/:orderNumber', lookupOrderLimiter, async (req: Request, res: Response) => {
     const { orderNumber } = req.params;
     const emailQuery = (req.query.email as string | undefined)?.trim().toLowerCase();
 

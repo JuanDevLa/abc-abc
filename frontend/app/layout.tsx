@@ -22,14 +22,12 @@ export const metadata: Metadata = {
     siteName: "Jerseys Raw",
     title: "Jerseys Raw — Official Gear",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
-    images: [{ url: "/og-image.jpg", width: 1200, height: 630, alt: "Jerseys Raw" }],
   },
   twitter: {
     card: "summary_large_image",
     site: "@jerseysraw",
     title: "Jerseys Raw — Official Gear",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
-    images: ["/og-image.jpg"],
   },
   robots: {
     index: true,
