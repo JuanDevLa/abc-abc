@@ -96,6 +96,8 @@ model Club {
   products  Product[]
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+
+  @@index([leagueId])
 }
 
 model Season {
@@ -160,6 +162,8 @@ model ProductImage {
   height    Int?
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+
+  @@index([productId])
 }
 
 // Variante = combinaciones vendibles
@@ -350,6 +354,9 @@ model PurchaseOrderItem {
   qtyOrdered      Int
   qtyReceived     Int            @default(0)
   notes           String?
+
+  @@index([purchaseOrderId])
+  @@index([variantId])
 }
 
 // ---------- USUARIOS Y AUTH ----------
@@ -396,6 +403,7 @@ model RewardTransaction {
   createdAt   DateTime @default(now())
 
   @@index([userId, createdAt])
+  @@index([orderId])
 }
 
 model VerificationToken {

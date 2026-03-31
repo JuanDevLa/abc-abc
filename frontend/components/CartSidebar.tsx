@@ -89,7 +89,7 @@ export default function CartSidebar() {
                                         <div className="flex items-center bg-white border border-gray-300 rounded-lg">
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity - 1)}
-                                                className="p-1 px-2 text-gray-400 hover:text-black transition-colors disabled:opacity-30"
+                                                className="p-3 text-gray-400 hover:text-black transition-colors disabled:opacity-30"
                                                 disabled={item.quantity <= 1}
                                             >
                                                 <Minus className="w-3 h-3" />
@@ -99,7 +99,7 @@ export default function CartSidebar() {
                                             </span>
                                             <button
                                                 onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                                                className="p-1 px-2 text-gray-400 hover:text-black transition-colors"
+                                                className="p-3 text-gray-400 hover:text-black transition-colors"
                                             >
                                                 <Plus className="w-3 h-3" />
                                             </button>

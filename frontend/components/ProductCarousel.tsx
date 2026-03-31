@@ -131,11 +131,11 @@ const ProductCarousel = () => {
             {INFINITE_PRODUCTS.map((product, index) => (
               <div
                 key={`${product.id}-${index}`}
-                className="w-80 lg:w-[calc(25%-12px)] flex-shrink-0 snap-start group flex flex-col h-[440px]"
+                className="w-80 md:w-[calc(33%-11px)] lg:w-[calc(25%-12px)] flex-shrink-0 snap-start group flex flex-col h-[340px] md:h-[380px] lg:h-[440px]"
               >
                 {/* NOMBRE — arriba, impactante */}
                 <div className="pb-3 text-center">
-                  <h3 className="text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                  <h3 className="text-3xl md:text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                     {product.name}
                   </h3>
                 </div>
@@ -160,7 +160,7 @@ const ProductCarousel = () => {
                 <div className="pt-2 pb-3 text-center">
                   <Link
                     href={`/teams/${product.slug}`}
-                    className="inline-flex items-center justify-center px-14 py-2.5 bg-gradient-to-b from-[#f8c889] via-[#fbc57d] to-[#fec375] text-black rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+                    className="inline-flex items-center justify-center px-14 py-2 lg:py-2.5 bg-gradient-to-b from-[#f8c889] via-[#fbc57d] to-[#fec375] text-black rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
                   >
                     Comprar
                   </Link>

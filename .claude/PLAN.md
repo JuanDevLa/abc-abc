@@ -356,20 +356,11 @@ Tras cada tarea:
 
 ---
 
-## Sprint 5 — Responsive Tablet (iPad) ⏳ PENDIENTE
+## Sprint 5 — Responsive Tablet (iPad) ✅ COMPLETO (2026-03-30)
 
-### EX-TAB1 — Product Carousel: cards muy altas en tablet
+### ✅ EX-TAB1 — Product Carousel: cards muy altas en tablet
 **Archivos:** `frontend/components/ProductCarousel.tsx`
-**Complejidad:** Baja
-**Breakpoint afectado:** md (768px) y lg landscape (1024px)
-
-**Problema:** La card tiene `h-[440px]` fijo para todos los tamaños. En iPad portrait (768px) ocupa casi toda la pantalla vertical; en iPad landscape (1024px) las cards cambian a `lg:w-[calc(25%-12px)]` (~244px) pero mantienen 440px de alto, quedando muy delgadas y alargadas.
-
-**Fix:**
-1. **Altura responsive:** `h-[340px] md:h-[380px] lg:h-[440px]`
-2. **Ancho en tablet:** en `md` mostrar 3 cards con `md:w-[calc(33%-11px)]` en lugar del fijo `w-80` (320px) — evita que solo 2 cards llenen mal el espacio
-3. **Heading del nombre:** `text-3xl md:text-4xl` (actualmente `text-4xl` fijo)
-4. **Botón "Comprar":** `py-2 lg:py-2.5` para ganar espacio de imagen en tablet
+**Fix aplicado:** Altura `h-[340px] md:h-[380px] lg:h-[440px]`, ancho `md:w-[calc(33%-11px)]`, heading `text-3xl md:text-4xl`, botón `py-2 lg:py-2.5`. 2026-03-30.
 
 ---
 
@@ -620,9 +611,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6B-8 [HIGH] CORS permite localhost en producción
 **Fix aplicado:** `corsConfig.ts` excluye `localhost:3000` cuando `NODE_ENV === 'production'`. 2026-03-28.
 
-#### 6B-9 [HIGH] Admin config sin validación
-**Archivo:** `admin.routes.ts:196-219`
-**Fix:** Agregar Zod validation con min/max en campos numéricos de reward config.
+#### ✅ 6B-9 [HIGH] Admin config sin validación
+**Fix aplicado:** `admin.routes.ts` — `RewardConfigSchema` con Zod valida tipos y rangos (min 1, max 100,000) antes del upsert. 2026-03-30.
 
 #### ✅ 6B-10 [HIGH] POST/PUT/DELETE /products sin admin check
 **Fix aplicado:** `product.routes.ts` ya tiene `requireAuth` + `role !== 'admin'` → 403 en todas las rutas write. Verificado 2026-03-28.
@@ -638,9 +628,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 **Archivo:** `order.routes.ts:337-401`
 **Fix:** Agregar rate limiting dedicado + extender parte aleatoria del order number.
 
-#### 6B-14 [MEDIUM] Missing DB indexes
-**Archivo:** `prisma/schema.prisma`
-**Fix:** Agregar `@@index` en: `Club.leagueId`, `ProductImage.productId`, `PurchaseOrderItem.purchaseOrderId`, `PurchaseOrderItem.variantId`, `RewardTransaction.orderId`.
+#### ✅ 6B-14 [MEDIUM] Missing DB indexes
+**Fix aplicado:** `schema.prisma` — agregados `@@index([leagueId])` en Club, `@@index([productId])` en ProductImage, `@@index([purchaseOrderId])` y `@@index([variantId])` en PurchaseOrderItem, `@@index([orderId])` en RewardTransaction. Requiere `prisma migrate dev`. 2026-03-30.
 
 #### ✅ 6B-15 [MEDIUM] morgan('dev') en producción
 **Fix aplicado:** `server.ts` usa `morgan('combined')` en producción y `morgan('dev')` en desarrollo. 2026-03-28.
@@ -652,9 +641,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### 6B-17 [LOW] Inconsistent error response formats
 **Acción:** Estandarizar en `{ error: string, code?: string }`.
 
-#### 6B-18 [LOW] Mailer from addresses inconsistentes
-**Archivo:** `mailer.ts:202,238,258,280`
-**Fix:** Extraer `getFromAddress()` helper.
+#### ✅ 6B-18 [LOW] Mailer from addresses inconsistentes
+**Fix aplicado:** `mailer.ts` ya centraliza el remitente en `SENDER_EMAIL = process.env.SMTP_FROM ?? 'ayuda@jerseysraw.com'`. Sin duplicación real. Verificado 2026-03-30.
 
 ---
 
@@ -683,9 +671,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6C-7 [HIGH] Wishlist page sin metadata
 **Fix aplicado:** `app/wishlist/layout.tsx` ya existe con metadata y canonical. Verificado 2026-03-28.
 
-#### 6C-8 [MEDIUM] Product OG type "website" → "product"
-**Archivo:** `frontend/app/product/[id]/page.tsx:52`
-**Fix:** Cambiar `type: "website"` a `type: "product"`.
+#### ✅ 6C-8 [MEDIUM] Product OG type "website" → "product"
+**Fix aplicado:** `product/[id]/page.tsx` usa `type: "product" as any` (Next.js no tipifica "product" en su unión, pero el meta tag OG es válido). 2026-03-30.
 
 #### 6C-9 [MEDIUM] Reviews page client-rendered (invisible a crawlers)
 **Fix:** Fetch inicial server-side en un Server Component wrapper.
@@ -751,16 +738,14 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6D-12 [HIGH] Links sociales placeholder href="#"
 **Estado:** Instagram ya tiene URL real. Facebook/Twitter/YouTube sin cuentas activas — descartado por el usuario. 2026-03-28.
 
-#### 6D-13 [HIGH] Teléfono placeholder en footer
-**Archivo:** `Footer.tsx:91`
-**Fix:** Reemplazar "55 1234 5678" con número real o WhatsApp link.
+#### ✅ 6D-13 [HIGH] Teléfono placeholder en footer
+**Fix aplicado:** `Footer.tsx` ya tiene número real `+52 965 138 6865`. Verificado 2026-03-30.
 
 #### 6D-14 [HIGH] No welcome/post-purchase email al cliente
 **Fix:** Implementar email de confirmación de orden al cliente en el webhook handler + email de review request 7 días después.
 
-#### 6D-15 [HIGH] No prompt de crear cuenta en confirmation
-**Archivo:** `confirmation/[orderNumber]/page.tsx`
-**Fix:** Si usuario no logueado, mostrar CTA "Crea tu cuenta para ganar puntos" con email pre-llenado.
+#### ✅ 6D-15 [HIGH] No prompt de crear cuenta en confirmation
+**Fix aplicado:** `confirmation/[orderNumber]/page.tsx` importa `useAuth` y muestra bloque CTA "Crear cuenta y ganar puntos" solo cuando `!user`, con el email de la orden pre-llenado en la URL de registro. 2026-03-30.
 
 #### ✅ 6D-16 [HIGH] Missing noindex en checkout/confirmation
 **Archivos:** `checkout/layout.tsx`, `confirmation/[orderNumber]/layout.tsx`
@@ -773,16 +758,15 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### 6D-18 [MEDIUM] No abandoned cart email / exit-intent
 **Acción:** En email blur en checkout, guardar email → cron envía reminder si orden no se completa en 1hr.
 
-#### 6D-19 [MEDIUM] Cart quantity buttons touch targets pequeños
-**Archivo:** `CartSidebar.tsx:90-105`
-**Fix:** Aumentar padding a `p-3` mínimo (44x44px target).
+#### ✅ 6D-19 [MEDIUM] Cart quantity buttons touch targets pequeños
+**Fix aplicado:** `CartSidebar.tsx` botones `-`/`+` cambiados de `p-1 px-2` a `p-3` (~44×44px). 2026-03-30.
 
 #### 6D-20 [MEDIUM] Search escondido en mobile
 **Archivo:** `Navbar.tsx:414`
 **Fix:** Agregar ícono de búsqueda en mobile que abra overlay full-screen.
 
-#### 6D-21 [MEDIUM] No return policy visible en producto/checkout
-**Fix:** Agregar badge "30 días de devolución" en product page + link a WhatsApp en checkout.
+#### ❌ 6D-21 [MEDIUM] No return policy visible en producto/checkout
+**Descartado por el usuario** (2026-03-30) — no se quiere mostrar badge de devoluciones.
 
 ---
 

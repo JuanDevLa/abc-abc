@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCartStore } from "@/app/store/cartStore";
 import Navbar from "@/components/Navbar";
 import { CheckCircle2, Package, MapPin, Truck, Copy, Check } from "lucide-react";
@@ -42,6 +43,7 @@ export default function ConfirmationPage() {
     const params = useParams();
     const orderNumber = params.orderNumber as string;
 
+    const { user } = useAuth();
     const [order, setOrder] = useState<OrderData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -232,6 +234,20 @@ export default function ConfirmationPage() {
                         Seguir Comprando
                     </Link>
                 </div>
+
+                {/* ─── CTA Registro (solo para guests) ─── */}
+                {!user && (
+                    <div className={`mt-6 bg-theme-card border border-th-border/10 rounded-2xl p-6 text-center transition-all duration-700 delay-600 ${showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"}`}>
+                        <p className="text-sm font-bold mb-1">¿Sabías que puedes ganar puntos por cada compra?</p>
+                        <p className="text-xs text-th-secondary mb-4">Crea tu cuenta gratis con el mismo correo y acumula puntos para una jersey gratis.</p>
+                        <Link
+                            href={`/register${order?.email ? `?email=${encodeURIComponent(order.email)}` : ''}`}
+                            className="inline-block bg-black text-white font-bold uppercase text-xs py-3 px-6 rounded-xl hover:opacity-80 transition-all"
+                        >
+                            Crear cuenta y ganar puntos
+                        </Link>
+                    </div>
+                )}
             </div>
         </div>
     );

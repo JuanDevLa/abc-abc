@@ -48,7 +48,7 @@ export async function generateMetadata(
       title: `${product.name}${price ? ` — ${price}` : ""}`,
       description,
       images: imageUrl ? [{ url: imageUrl, width: 800, height: 800, alt: product.name }] : [],
-      type: "website" as const,
+      type: "product" as any,
       siteName: "Jerseys Raw",
     },
     twitter: {

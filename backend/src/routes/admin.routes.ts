@@ -1,5 +1,6 @@
 // src/routes/admin.routes.ts
 import { Router, type Request, type Response } from 'express';
+import { z } from 'zod';
 import bcrypt from 'bcrypt';
 import rateLimit from 'express-rate-limit';
 import { generateToken } from '../lib/auth.js';
@@ -201,24 +202,33 @@ router.get('/rewards/config', requireAuth, async (req: Request, res: Response) =
   }
 });
 
+const RewardConfigSchema = z.object({
+  enabled:         z.boolean().optional(),
+  centsPerPoint:   z.number().int().min(1).max(100_000).optional(),
+  pointValueCents: z.number().int().min(1).max(100_000).optional(),
+  goalPoints:      z.number().int().min(1).max(100_000).optional(),
+});
+
 /* ─── PUT /admin/rewards/config ─── */
 router.put('/rewards/config', requireAuth, async (req: Request, res: Response) => {
   if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
+  const parsed = RewardConfigSchema.safeParse(req.body);
+  if (!parsed.success) return res.status(400).json({ error: parsed.error.errors[0].message });
   try {
-    const { enabled, centsPerPoint, pointValueCents, goalPoints } = req.body;
+    const { enabled, centsPerPoint, pointValueCents, goalPoints } = parsed.data;
     const config = await prisma.rewardConfig.upsert({
       where: { id: 1 },
       create: {
-        enabled:         typeof enabled         === 'boolean' ? enabled         : true,
-        centsPerPoint:   typeof centsPerPoint   === 'number'  ? centsPerPoint   : 400,
-        pointValueCents: typeof pointValueCents === 'number'  ? pointValueCents : 100,
-        goalPoints:      typeof goalPoints      === 'number'  ? goalPoints      : 550,
+        enabled:         enabled         ?? true,
+        centsPerPoint:   centsPerPoint   ?? 400,
+        pointValueCents: pointValueCents ?? 100,
+        goalPoints:      goalPoints      ?? 550,
       },
       update: {
-        ...(typeof enabled         === 'boolean' && { enabled }),
-        ...(typeof centsPerPoint   === 'number'  && { centsPerPoint }),
-        ...(typeof pointValueCents === 'number'  && { pointValueCents }),
-        ...(typeof goalPoints      === 'number'  && { goalPoints }),
+        ...(enabled         !== undefined && { enabled }),
+        ...(centsPerPoint   !== undefined && { centsPerPoint }),
+        ...(pointValueCents !== undefined && { pointValueCents }),
+        ...(goalPoints      !== undefined && { goalPoints }),
       },
     });
     res.json(config);
