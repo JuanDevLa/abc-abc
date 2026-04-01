@@ -607,7 +607,7 @@ export default function CheckoutPage() {
                         <div className="sticky top-28 bg-theme-card border border-th-border/10 rounded-2xl p-6 md:p-8">
                             <h2 className="text-xl font-heading uppercase tracking-wide mb-6">Resumen del Pedido</h2>
 
-                            <div className="space-y-4 mb-6 max-h-[300px] overflow-y-auto pr-2">
+                            <div className="space-y-4 mb-6">
                                 {items.map((item) => (
                                     <div key={item.id} className="flex gap-4 items-center">
                                         <div className="w-16 h-20 bg-theme-surface rounded-lg overflow-hidden flex-shrink-0 relative border border-th-border/10">
