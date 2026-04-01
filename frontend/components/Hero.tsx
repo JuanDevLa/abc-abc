@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -27,11 +28,13 @@ const Hero = () => {
       <div className="absolute inset-0 w-full h-full">
         {HERO_IMAGES.map((img, index) => (
           <div key={index} className="absolute inset-0 w-full h-full">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
+            <Image
               src={img}
               alt={`Slide ${index}`}
-              className={`w-full h-full object-cover transition-all duration-1000 ease-in-out
+              fill
+              sizes="100vw"
+              priority={index === 0}
+              className={`object-cover transition-all duration-1000 ease-in-out
                 ${index === currentImage ? "opacity-50 scale-105" : "opacity-0 scale-100"}
               `}
             />

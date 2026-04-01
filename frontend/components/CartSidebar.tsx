@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCartStore } from "@/app/store/cartStore";
 import { X, Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import Link from "next/link";
@@ -69,9 +70,8 @@ export default function CartSidebar() {
                                 </button>
 
                                 {/* Imagen */}
-                                <div className="w-20 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                <div className="relative w-20 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0 border border-gray-200">
+                                    <Image src={item.imageUrl} alt={item.name} fill sizes="80px" className="object-cover" />
                                 </div>
 
                                 {/* Detalles */}

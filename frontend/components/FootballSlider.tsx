@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
+import Image from "next/image";
 import { ArrowRight, ChevronLeft, ChevronRight, Star } from "lucide-react";
 import Link from "next/link";
 
@@ -87,7 +88,7 @@ const FootballSlider = () => {
                 key={`${item.id}-${index}`}
                 className="min-w-[85vw] md:min-w-[600px] h-[400px] md:h-[500px] snap-start group relative overflow-hidden cursor-pointer rounded-sm block"
               >
-                <img src={item.img} alt={item.team} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-60 group-hover:opacity-100" />
+                <Image src={item.img} alt={item.team} fill sizes="(max-width: 768px) 85vw, 600px" className="object-cover transition-transform duration-1000 group-hover:scale-110 opacity-60 group-hover:opacity-100" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-90" />
                 <div className="absolute bottom-0 left-0 p-8 md:p-12 w-full">
                   <div className="flex items-center gap-3 mb-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 transform translate-y-4 group-hover:translate-y-0">

@@ -1,5 +1,6 @@
 "use client";
 import React, { useRef, useEffect } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
@@ -142,16 +143,20 @@ const ProductCarousel = () => {
 
                 {/* IMAGEN — ocupa el espacio disponible */}
                 <Link href={`/teams/${product.slug}`} className="block relative flex-1 min-h-0 overflow-hidden cursor-pointer rounded-lg">
-                  <img
+                  <Image
                     src={product.img}
                     alt={product.name}
-                    className={`w-full h-full object-cover transition-all duration-500 rounded-lg ${product.imgHover ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
+                    fill
+                    sizes="(max-width: 768px) 320px, (max-width: 1024px) 33vw, 25vw"
+                    className={`object-cover transition-all duration-500 rounded-lg ${product.imgHover ? 'group-hover:opacity-0' : 'group-hover:scale-105'}`}
                   />
                   {product.imgHover && (
-                    <img
+                    <Image
                       src={product.imgHover}
                       alt={`${product.name} - vista alternativa`}
-                      className="absolute inset-0 w-full h-full object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"
+                      fill
+                      sizes="(max-width: 768px) 320px, (max-width: 1024px) 33vw, 25vw"
+                      className="object-cover opacity-0 group-hover:opacity-100 transition-opacity duration-500 rounded-lg"
                     />
                   )}
                 </Link>

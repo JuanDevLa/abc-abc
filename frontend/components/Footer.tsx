@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import Link from 'next/link';
 
 const Footer = () => (
@@ -138,23 +139,23 @@ const Footer = () => (
 
         {/* Métodos de pago */}
         <div className="flex items-center gap-6 flex-wrap justify-end">
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898213/visa-10_wyt5i3.svg" alt="Visa" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898213/visa-10_wyt5i3.svg" alt="Visa" fill sizes="48px" className="object-contain p-1" />
           </div>
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772897874/oxxo-logo_dm1spz.svg" alt="OXXO" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772897874/oxxo-logo_dm1spz.svg" alt="OXXO" fill sizes="48px" className="object-contain p-1" />
           </div>
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898212/mastercard-modern-design-_gsyd1p.svg" alt="Mastercard" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898212/mastercard-modern-design-_gsyd1p.svg" alt="Mastercard" fill sizes="48px" className="object-contain p-1" />
           </div>
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898212/american-express-1_v71nnx.svg" alt="AMEX" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898212/american-express-1_v71nnx.svg" alt="AMEX" fill sizes="48px" className="object-contain p-1" />
           </div>
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898211/paypal-3_ai1tll.svg" alt="PayPal" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898211/paypal-3_ai1tll.svg" alt="PayPal" fill sizes="48px" className="object-contain p-1" />
           </div>
-          <div className="w-12 h-7 bg-white border border-gray-200 rounded flex items-center justify-center p-1">
-            <img src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898211/spei-1_zdinhs.svg" alt="SPEI" className="w-full h-full object-contain" />
+          <div className="relative w-12 h-7 bg-white border border-gray-200 rounded p-1">
+            <Image src="https://res.cloudinary.com/dcwyl56kj/image/upload/v1772898211/spei-1_zdinhs.svg" alt="SPEI" fill sizes="48px" className="object-contain p-1" />
           </div>
         </div>
 

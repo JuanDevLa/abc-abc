@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -187,9 +188,8 @@ export default function ConfirmationPage() {
                         {order.items.map((item, i) => (
                             <div key={i} className="flex items-center gap-4">
                                 {item.productImageUrl && (
-                                    <div className="w-14 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-th-border/10">
-                                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                                        <img src={item.productImageUrl} alt={item.productName} className="w-full h-full object-cover" />
+                                    <div className="relative w-14 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-th-border/10">
+                                        <Image src={item.productImageUrl} alt={item.productName} fill sizes="56px" className="object-cover" />
                                     </div>
                                 )}
                                 <div className="flex-1">

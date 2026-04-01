@@ -6,6 +6,7 @@ import { api } from "@/lib/api";
 import { getDeliveryDates } from "@/lib/shipping";
 import Navbar from "@/components/Navbar";
 import { ShieldCheck, Truck, CreditCard, ChevronRight, Package, Zap, Loader2, Tag, X } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -466,8 +467,7 @@ export default function CheckoutPage() {
                                             <div className="absolute -top-2 -right-2 bg-th-secondary text-white text-[10px] font-bold w-5 h-5 flex flex-col items-center justify-center rounded-full z-10">
                                                 {item.quantity}
                                             </div>
-                                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                                            <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
+                                            <Image src={item.imageUrl} alt={item.name} fill sizes="64px" className="object-cover" />
                                         </div>
                                         <div className="flex-1">
                                             <h4 className="text-sm font-bold truncate pr-4">{item.name}</h4>
