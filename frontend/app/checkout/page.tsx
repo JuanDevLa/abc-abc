@@ -143,7 +143,7 @@ export default function CheckoutPage() {
     useEffect(() => {
         if (formData.zipCode.length !== 5) return;
         setCpLoading(true);
-        fetch(`https://sepomex.icalialabs.com/api/v1/zip_codes?zip_code=${formData.zipCode}`)
+        fetch(`/api/cp/${formData.zipCode}`)
             .then(r => r.json())
             .then(data => {
                 const zc = data.zip_codes?.[0];
