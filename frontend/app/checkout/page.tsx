@@ -625,7 +625,7 @@ export default function CheckoutPage() {
                                                 </p>
                                             )}
                                         </div>
-                                        <div className="font-bold text-sm whitespace-nowrap">
+                                        <div className="font-bold text-sm whitespace-nowrap w-20 text-right flex-shrink-0">
                                             ${Number(item.price * item.quantity).toFixed(2).replace(/\.00$/, '')}
                                         </div>
                                     </div>
