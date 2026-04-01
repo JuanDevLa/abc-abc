@@ -616,7 +616,7 @@ export default function CheckoutPage() {
                                             </div>
                                             <Image src={item.imageUrl} alt={item.name} fill sizes="64px" className="object-cover" />
                                         </div>
-                                        <div className="flex-1">
+                                        <div className="flex-1 min-w-0">
                                             <h4 className="text-sm font-bold truncate pr-4">{item.name}</h4>
                                             {item.size && <p className="text-xs text-th-secondary uppercase">Talla: <span className="text-th-primary">{item.size}</span></p>}
                                             {item.isCustomized && (
