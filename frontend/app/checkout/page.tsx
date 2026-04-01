@@ -17,6 +17,44 @@ interface ShippingOption {
     isFree: boolean;
 }
 
+function getFieldError(name: string, value: string): string {
+    const v = value.trim();
+    switch (name) {
+        case 'email':
+            if (!v) return 'El correo es obligatorio';
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)) return 'Correo electrónico inválido';
+            return '';
+        case 'firstName':
+            if (!v) return 'El nombre es obligatorio';
+            if (v.length < 2) return 'Mínimo 2 caracteres';
+            return '';
+        case 'lastName':
+            if (!v) return 'El apellido es obligatorio';
+            if (v.length < 2) return 'Mínimo 2 caracteres';
+            return '';
+        case 'address':
+            if (!v) return 'La dirección es obligatoria';
+            if (v.length < 5) return 'Dirección muy corta';
+            return '';
+        case 'city':
+            if (!v) return 'La ciudad es obligatoria';
+            return '';
+        case 'state':
+            if (!v) return 'El estado es obligatorio';
+            return '';
+        case 'zipCode':
+            if (!v) return 'El C.P. es obligatorio';
+            if (!/^\d{5}$/.test(v)) return 'Debe tener exactamente 5 dígitos';
+            return '';
+        case 'phone':
+            if (!v) return 'El teléfono es obligatorio';
+            if (!/^\d{10}$/.test(v)) return 'Debe tener exactamente 10 dígitos';
+            return '';
+        default:
+            return '';
+    }
+}
+
 export default function CheckoutPage() {
     const { items, getSubtotal } = useCartStore();
     const { user, token } = useAuth();
@@ -41,6 +79,7 @@ export default function CheckoutPage() {
     const [couponData, setCouponData] = useState<{ code: string; discountPercent: number; discountCents: number; description: string } | null>(null);
     const [couponError, setCouponError] = useState("");
     const [couponLoading, setCouponLoading] = useState(false);
+    const [touched, setTouched] = useState<Partial<Record<string, boolean>>>({});
     const [firstPurchaseCoupon, setFirstPurchaseCoupon] = useState<{ code: string; discountPercent: number; description: string } | null>(null);
 
     useEffect(() => { setMounted(true); }, []);
@@ -141,8 +180,19 @@ export default function CheckoutPage() {
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+        setTouched(prev => ({ ...prev, [e.target.name]: true }));
+    };
+
     const handleCheckout = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        // Touch all required fields to surface errors
+        const requiredFields = ['email', 'firstName', 'lastName', 'address', 'city', 'state', 'zipCode', 'phone'];
+        setTouched(requiredFields.reduce((acc, f) => ({ ...acc, [f]: true }), {}));
+        const hasErrors = requiredFields.some(f => getFieldError(f, formData[f as keyof typeof formData] ?? ''));
+        if (hasErrors) return;
+
         setLoading(true); // PREVENCIÓN DE DOBLE CLIC: botón bloqueado desde el primer clic
         setError("");
 
@@ -211,7 +261,13 @@ export default function CheckoutPage() {
     };
 
 
-    const inputClass = "w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-black focus:border-black outline-none transition-colors placeholder:text-gray-400";
+    const getInputClass = (name: string) => {
+        const base = "w-full bg-white border rounded-lg px-4 py-3 text-base text-black focus:outline-none transition-colors placeholder:text-gray-400";
+        if (!touched[name]) return `${base} border-gray-300 focus:border-black`;
+        const err = getFieldError(name, formData[name as keyof typeof formData] ?? '');
+        if (err) return `${base} border-red-400 focus:border-red-500`;
+        return `${base} border-green-500 focus:border-green-600`;
+    };
 
     return (
         <div className="min-h-screen bg-theme-bg text-th-primary font-sans pb-20 transition-colors duration-300">
@@ -260,7 +316,10 @@ export default function CheckoutPage() {
                                 <h2 className="text-xl font-heading uppercase tracking-wide">Información de Contacto</h2>
                                 <div>
                                     <label htmlFor="email" className="block text-xs font-medium text-th-secondary mb-1">Correo Electrónico *</label>
-                                    <input id="email" type="email" name="email" required placeholder="tu@correo.com" value={formData.email} onChange={handleInputChange} autoComplete="email" className={inputClass} />
+                                    <input id="email" type="email" name="email" required placeholder="tu@correo.com" value={formData.email} onChange={handleInputChange} onBlur={handleBlur} autoComplete="email" className={getInputClass('email')} />
+                                    {touched.email && getFieldError('email', formData.email) && (
+                                        <p className="text-xs text-red-500 mt-1">{getFieldError('email', formData.email)}</p>
+                                    )}
                                     <p className="text-xs text-th-secondary mt-2 flex items-center gap-1">
                                         <ShieldCheck className="w-3.5 h-3.5" /> Te enviaremos el recibo y actualizaciones de envío aquí.
                                     </p>
@@ -273,37 +332,55 @@ export default function CheckoutPage() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div className="flex flex-col gap-1">
                                         <label htmlFor="firstName" className="text-xs font-medium text-th-secondary">Nombre *</label>
-                                        <input id="firstName" type="text" name="firstName" required placeholder="Juan" value={formData.firstName} onChange={handleInputChange} autoComplete="given-name" className={inputClass} />
+                                        <input id="firstName" type="text" name="firstName" required placeholder="Juan" value={formData.firstName} onChange={handleInputChange} onBlur={handleBlur} autoComplete="given-name" className={getInputClass('firstName')} />
+                                        {touched.firstName && getFieldError('firstName', formData.firstName) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('firstName', formData.firstName)}</p>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <label htmlFor="lastName" className="text-xs font-medium text-th-secondary">Apellido(s) *</label>
-                                        <input id="lastName" type="text" name="lastName" required placeholder="García López" value={formData.lastName} onChange={handleInputChange} autoComplete="family-name" className={inputClass} />
+                                        <input id="lastName" type="text" name="lastName" required placeholder="García López" value={formData.lastName} onChange={handleInputChange} onBlur={handleBlur} autoComplete="family-name" className={getInputClass('lastName')} />
+                                        {touched.lastName && getFieldError('lastName', formData.lastName) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('lastName', formData.lastName)}</p>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1 md:col-span-2">
                                         <label htmlFor="address" className="text-xs font-medium text-th-secondary">Dirección *</label>
-                                        <input id="address" type="text" name="address" required placeholder="Calle, Número, Colonia" value={formData.address} onChange={handleInputChange} autoComplete="street-address" className={inputClass} />
+                                        <input id="address" type="text" name="address" required placeholder="Calle, Número, Colonia" value={formData.address} onChange={handleInputChange} onBlur={handleBlur} autoComplete="street-address" className={getInputClass('address')} />
+                                        {touched.address && getFieldError('address', formData.address) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('address', formData.address)}</p>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <label htmlFor="city" className="text-xs font-medium text-th-secondary">Ciudad *</label>
-                                        <input id="city" type="text" name="city" required placeholder="Ciudad de México" value={formData.city} onChange={handleInputChange} autoComplete="address-level2" className={inputClass} />
+                                        <input id="city" type="text" name="city" required placeholder="Ciudad de México" value={formData.city} onChange={handleInputChange} onBlur={handleBlur} autoComplete="address-level2" className={getInputClass('city')} />
+                                        {touched.city && getFieldError('city', formData.city) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('city', formData.city)}</p>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1">
                                         <label htmlFor="state" className="text-xs font-medium text-th-secondary">Estado *</label>
-                                        <input id="state" type="text" name="state" required placeholder="CDMX" value={formData.state} onChange={handleInputChange} autoComplete="address-level1" className={inputClass} />
+                                        <input id="state" type="text" name="state" required placeholder="CDMX" value={formData.state} onChange={handleInputChange} onBlur={handleBlur} autoComplete="address-level1" className={getInputClass('state')} />
+                                        {touched.state && getFieldError('state', formData.state) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('state', formData.state)}</p>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-4">
                                         <div className="flex flex-col gap-1">
                                             <label htmlFor="zipCode" className="text-xs font-medium text-th-secondary">C.P. *</label>
                                             <input
                                                 id="zipCode" type="text" name="zipCode" required placeholder="06600"
-                                                value={formData.zipCode} onChange={handleInputChange}
+                                                value={formData.zipCode} onChange={handleInputChange} onBlur={handleBlur}
                                                 pattern="\d{5}" maxLength={5} title="5 dígitos"
-                                                autoComplete="postal-code" className={inputClass}
+                                                autoComplete="postal-code" className={getInputClass('zipCode')}
                                             />
+                                            {touched.zipCode && getFieldError('zipCode', formData.zipCode) && (
+                                                <p className="text-xs text-red-500 mt-1">{getFieldError('zipCode', formData.zipCode)}</p>
+                                            )}
                                         </div>
                                         <div className="flex flex-col gap-1">
                                             <label htmlFor="country" className="text-xs font-medium text-th-secondary">País</label>
-                                            <select id="country" name="country" value={formData.country} onChange={handleInputChange} autoComplete="country-name" className={inputClass}>
+                                            <select id="country" name="country" value={formData.country} onChange={handleInputChange} autoComplete="country-name" className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-black focus:border-black focus:outline-none transition-colors">
                                                 <option value="México">México</option>
                                             </select>
                                         </div>
@@ -312,10 +389,13 @@ export default function CheckoutPage() {
                                         <label htmlFor="phone" className="text-xs font-medium text-th-secondary">Teléfono *</label>
                                         <input
                                             id="phone" type="tel" name="phone" required placeholder="5512345678"
-                                            value={formData.phone} onChange={handleInputChange}
+                                            value={formData.phone} onChange={handleInputChange} onBlur={handleBlur}
                                             pattern="\d{10}" maxLength={10} title="10 dígitos"
-                                            autoComplete="tel" className={inputClass}
+                                            autoComplete="tel" className={getInputClass('phone')}
                                         />
+                                        {touched.phone && getFieldError('phone', formData.phone) && (
+                                            <p className="text-xs text-red-500 mt-1">{getFieldError('phone', formData.phone)}</p>
+                                        )}
                                     </div>
                                     <div className="flex flex-col gap-1 md:col-span-2">
                                         <label htmlFor="reference" className="text-xs font-medium text-th-secondary">Referencia <span className="font-normal">(opcional)</span></label>
@@ -323,7 +403,7 @@ export default function CheckoutPage() {
                                             id="reference" type="text" name="reference" placeholder="Entre calles, color de fachada, etc."
                                             value={formData.reference} onChange={handleInputChange}
                                             maxLength={120}
-                                            className={inputClass}
+                                            className="w-full bg-white border border-gray-300 rounded-lg px-4 py-3 text-base text-black focus:border-black focus:outline-none transition-colors placeholder:text-gray-400"
                                         />
                                     </div>
                                 </div>
