@@ -587,10 +587,8 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6B-2 [CRITICAL] No unhandledRejection handler
 **Fix aplicado:** `server.ts` ya tiene `process.on('unhandledRejection', ...)` y `process.on('uncaughtException', ...)`. Verificado 2026-03-28.
 
-#### 6B-3 [CRITICAL] Stock race condition
-**Archivo:** `order.routes.ts:173-272`
-**Problema:** Prisma transactions usan READ COMMITTED sin `FOR UPDATE`. Dos órdenes concurrentes pueden decrementar stock a negativo.
-**Fix:** Usar `WHERE stock >= quantity` en el decrement atómico y verificar rowcount, o usar `isolationLevel: 'Serializable'`.
+#### ✅ 6B-3 [CRITICAL] Stock race condition
+**Fix aplicado:** `order.routes.ts:216-224` usa `updateMany` con `WHERE stock >= quantity` + verifica `updated.count === 0` para fallback a dropshipping. Optimistic lock sin necesidad de Serializable. Verificado 2026-04-01.
 
 #### ✅ 6B-4 [CRITICAL] Stripe/SMTP env vars opcionales — fallo silencioso
 **Fix aplicado:** `server.ts` — en el callback de `app.listen()` se agrupan los warnings por categoría: `[WARN] Payments disabled — missing: X` y `[WARN] Email disabled — missing: X`. 2026-03-31.
@@ -706,9 +704,9 @@ Auditoría completa con 4 agentes especializados: Security, Backend Production, 
 #### ✅ 6D-5 [HIGH] Cart sin progress bar de envío gratis
 **Fix aplicado:** Barra de progreso en `CartSidebar.tsx` y `checkout/page.tsx`. Umbral $999 MXN. Badge verde al alcanzarlo. 2026-03-28.
 
-#### 6D-6 [HIGH] Checkout sin inline validation
+#### ✅ 6D-6 [HIGH] Checkout sin inline validation
 **Archivo:** `checkout/page.tsx`
-**Fix:** Validación per-field en onBlur con feedback visual (borde verde/rojo + helper text).
+**Fix aplicado:** `getFieldError()` pura para 8 campos requeridos. `touched` state + `handleBlur` para mostrar errores solo post-interacción. `getInputClass()` retorna borde gris/verde/rojo. `handleCheckout` toca todos los campos al submit y aborta si hay errores. 2026-03-31.
 
 #### ✅ 6D-7 [HIGH] Hero botón "Más Vendidos" muerto
 **Archivo:** `Hero.tsx:71`
