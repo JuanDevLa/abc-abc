@@ -3,11 +3,11 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { api } from '@/lib/api';
 import { useAuth } from '@/contexts/AuthContext';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 
 type Step = 'form' | 'verify';
 
@@ -153,26 +153,23 @@ export default function RegisterClient() {
                   <div className="flex-1 h-px bg-th-border" />
                 </div>
 
-                <div className="flex justify-center">
-                  <GoogleLogin
-                    onSuccess={async (res) => {
-                      if (!res.credential) return;
-                      setError('');
-                      setLoading(true);
-                      try {
-                        await loginWithGoogle(res.credential);
-                        router.push('/account');
-                      } catch (err: unknown) {
-                        setError(err instanceof Error ? err.message : 'Error al registrarse con Google');
-                      } finally {
-                        setLoading(false);
-                      }
-                    }}
-                    onError={() => setError('Error al registrarse con Google')}
-                    text="signup_with"
-                    shape="rectangular"
-                  />
-                </div>
+                <GoogleAuthButton
+                  label="Registrarse con Google"
+                  disabled={loading}
+                  onSuccess={async (accessToken) => {
+                    setError('');
+                    setLoading(true);
+                    try {
+                      await loginWithGoogle(accessToken);
+                      router.push('/account');
+                    } catch (err: unknown) {
+                      setError(err instanceof Error ? err.message : 'Error al registrarse con Google');
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  onError={() => setError('Error al registrarse con Google')}
+                />
               </form>
             )}
 

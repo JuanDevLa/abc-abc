@@ -89,7 +89,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await fetch(`${API}/api/v1/auth/google`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential }),
+      body: JSON.stringify({ access_token: credential }),
     });
 
     if (!res.ok) {

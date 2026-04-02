@@ -3,8 +3,8 @@
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
+import GoogleAuthButton from '@/components/GoogleAuthButton';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
@@ -118,26 +118,23 @@ export default function LoginClient() {
               <div className="flex-1 h-px bg-th-border" />
             </div>
 
-            <div className="flex justify-center">
-              <GoogleLogin
-                onSuccess={async (res) => {
-                  if (!res.credential) return;
-                  setError('');
-                  setLoading(true);
-                  try {
-                    await loginWithGoogle(res.credential);
-                    router.push(redirect);
-                  } catch (err: unknown) {
-                    setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-                onError={() => setError('Error al iniciar sesión con Google')}
-                text="signin_with"
-                shape="rectangular"
-              />
-            </div>
+            <GoogleAuthButton
+              label="Continuar con Google"
+              disabled={loading}
+              onSuccess={async (accessToken) => {
+                setError('');
+                setLoading(true);
+                try {
+                  await loginWithGoogle(accessToken);
+                  router.push(redirect);
+                } catch (err: unknown) {
+                  setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
+                } finally {
+                  setLoading(false);
+                }
+              }}
+              onError={() => setError('Error al iniciar sesión con Google')}
+            />
           </form>
         </div>
       </main>

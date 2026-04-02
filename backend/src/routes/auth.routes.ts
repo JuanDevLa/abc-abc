@@ -292,7 +292,7 @@ router.post('/reset-password', otpLimiter, async (req, res, next) => {
 
 // POST /api/v1/auth/google
 const GoogleAuthSchema = z.object({
-  credential: z.string().min(1),
+  access_token: z.string().min(1),
 });
 
 router.post('/google', loginLimiter, async (req, res, next) => {
@@ -300,8 +300,10 @@ router.post('/google', loginLimiter, async (req, res, next) => {
     const parsed = GoogleAuthSchema.safeParse(req.body);
     if (!parsed.success) return res.status(400).json({ error: 'Credencial inválida' });
 
-    // Verificar el ID token con Google (endpoint público, no requiere secret)
-    const tokenRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${parsed.data.credential}`);
+    // Verificar el access token con Google y obtener info del usuario
+    const tokenRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: { Authorization: `Bearer ${parsed.data.access_token}` },
+    });
     const payload = await tokenRes.json();
 
     if (!tokenRes.ok || payload.error) {
