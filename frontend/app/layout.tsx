@@ -6,6 +6,7 @@ import CartSidebar from "@/components/CartSidebar";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import { RouteThemeForcer } from "@/components/RouteThemeForcer";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://jerseysraw.com"),
@@ -103,13 +104,15 @@ export default function RootLayout({
             style={{ display: "none", visibility: "hidden" }}
           />
         </noscript>
-        <AuthProvider>
-          <ThemeProvider>
-            <RouteThemeForcer />
-            {children}
-            <CartSidebar />
-          </ThemeProvider>
-        </AuthProvider>
+        <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+          <AuthProvider>
+            <ThemeProvider>
+              <RouteThemeForcer />
+              {children}
+              <CartSidebar />
+            </ThemeProvider>
+          </AuthProvider>
+        </GoogleOAuthProvider>
       </body>
     </html>
   );

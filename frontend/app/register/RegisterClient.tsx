@@ -3,14 +3,17 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { GoogleLogin } from '@react-oauth/google';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import { api } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 type Step = 'form' | 'verify';
 
 export default function RegisterClient() {
   const router = useRouter();
+  const { loginWithGoogle } = useAuth();
 
   const [step, setStep]         = useState<Step>('form');
   const [email, setEmail]       = useState('');
@@ -143,6 +146,33 @@ export default function RegisterClient() {
                 >
                   {loading ? 'Creando cuenta...' : 'Crear cuenta'}
                 </button>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-th-border" />
+                  <span className="text-xs text-th-secondary">o</span>
+                  <div className="flex-1 h-px bg-th-border" />
+                </div>
+
+                <div className="flex justify-center">
+                  <GoogleLogin
+                    onSuccess={async (res) => {
+                      if (!res.credential) return;
+                      setError('');
+                      setLoading(true);
+                      try {
+                        await loginWithGoogle(res.credential);
+                        router.push('/account');
+                      } catch (err: unknown) {
+                        setError(err instanceof Error ? err.message : 'Error al registrarse con Google');
+                      } finally {
+                        setLoading(false);
+                      }
+                    }}
+                    onError={() => setError('Error al registrarse con Google')}
+                    text="signup_with"
+                    shape="rectangular"
+                  />
+                </div>
               </form>
             )}
 

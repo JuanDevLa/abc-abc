@@ -3,12 +3,13 @@
 import { useState, FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
+import { GoogleLogin } from '@react-oauth/google';
 import { useAuth } from '@/contexts/AuthContext';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 
 export default function LoginClient() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';
@@ -110,6 +111,33 @@ export default function LoginClient() {
             >
               {loading ? 'Entrando...' : 'Entrar'}
             </button>
+
+            <div className="flex items-center gap-3">
+              <div className="flex-1 h-px bg-th-border" />
+              <span className="text-xs text-th-secondary">o</span>
+              <div className="flex-1 h-px bg-th-border" />
+            </div>
+
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={async (res) => {
+                  if (!res.credential) return;
+                  setError('');
+                  setLoading(true);
+                  try {
+                    await loginWithGoogle(res.credential);
+                    router.push(redirect);
+                  } catch (err: unknown) {
+                    setError(err instanceof Error ? err.message : 'Error al iniciar sesión con Google');
+                  } finally {
+                    setLoading(false);
+                  }
+                }}
+                onError={() => setError('Error al iniciar sesión con Google')}
+                text="signin_with"
+                shape="rectangular"
+              />
+            </div>
           </form>
         </div>
       </main>

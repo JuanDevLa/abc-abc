@@ -363,7 +363,8 @@ model PurchaseOrderItem {
 model User {
   id                 String              @id @default(uuid())
   email              String              @unique
-  passwordHash       String
+  passwordHash       String?
+  googleId           String?             @unique
   name               String?
   phone              String?
   role               UserRole            @default(CUSTOMER)

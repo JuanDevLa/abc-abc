@@ -170,6 +170,10 @@ router.post('/login', loginLimiter, async (req, res, next) => {
       return res.status(403).json({ error: 'Debes verificar tu correo antes de iniciar sesión' });
     }
 
+    if (!user.passwordHash) {
+      return res.status(400).json({ error: 'Esta cuenta fue creada con Google. Usa el botón "Continuar con Google" para entrar.' });
+    }
+
     const ok = await verifyPassword(password, user.passwordHash);
     if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
 
@@ -281,6 +285,70 @@ router.post('/reset-password', otpLimiter, async (req, res, next) => {
     ]);
 
     return res.json({ message: 'Contraseña actualizada correctamente' });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v1/auth/google
+const GoogleAuthSchema = z.object({
+  credential: z.string().min(1),
+});
+
+router.post('/google', loginLimiter, async (req, res, next) => {
+  try {
+    const parsed = GoogleAuthSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Credencial inválida' });
+
+    // Verificar el ID token con Google (endpoint público, no requiere secret)
+    const tokenRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${parsed.data.credential}`);
+    const payload = await tokenRes.json();
+
+    if (!tokenRes.ok || payload.error) {
+      return res.status(401).json({ error: 'Token de Google inválido o expirado' });
+    }
+
+    const { email, name, sub: googleId } = payload as { email: string; name?: string; sub: string };
+    if (!email) return res.status(401).json({ error: 'No se pudo obtener el correo de Google' });
+
+    // Buscar usuario por googleId o email
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+    });
+
+    if (user) {
+      // Vincular googleId si aún no estaba registrado (cuenta manual preexistente)
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, emailVerifiedAt: user.emailVerifiedAt ?? new Date() },
+        });
+      }
+    } else {
+      // Crear usuario nuevo — Google ya verificó el email
+      user = await prisma.user.create({
+        data: {
+          email,
+          name: name ?? null,
+          googleId,
+          emailVerifiedAt: new Date(),
+          rewardPoints: 500,
+          rewardHistory: {
+            create: {
+              type: 'EARN',
+              points: 500,
+              description: 'Bono de bienvenida — ¡Gracias por registrarte!',
+            },
+          },
+        },
+      });
+    }
+
+    const token = generateToken({ sub: user.id, role: user.role });
+    return res.json({
+      user: { id: user.id, email: user.email, name: user.name, role: user.role },
+      token,
+    });
   } catch (err) {
     next(err);
   }
