@@ -141,9 +141,9 @@ const ProductCarousel = () => {
               >
                 {/* NOMBRE — arriba, impactante */}
                 <div className="pb-3 text-center">
-                  <h3 className="text-3xl md:text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                  <p className="text-3xl md:text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                     {product.name}
-                  </h3>
+                  </p>
                 </div>
 
                 {/* IMAGEN — ocupa el espacio disponible */}

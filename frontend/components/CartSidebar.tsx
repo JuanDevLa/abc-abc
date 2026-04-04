@@ -77,9 +77,9 @@ export default function CartSidebar() {
                                 {/* Detalles */}
                                 <div className="flex-1 flex flex-col justify-between py-1">
                                     <div>
-                                        <h3 className="text-sm font-bold text-black uppercase tracking-tight line-clamp-2 pr-6">
+                                        <p className="text-sm font-bold text-black uppercase tracking-tight line-clamp-2 pr-6">
                                             {item.name}
-                                        </h3>
+                                        </p>
                                         {item.size && (
                                             <p className="text-xs text-gray-500 mt-1 uppercase">Talla: <span className="text-black">{item.size}</span></p>
                                         )}

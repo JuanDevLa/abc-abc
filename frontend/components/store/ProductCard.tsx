@@ -129,9 +129,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
         </p>
 
         {/* Título — peso normal, sin negritas */}
-        <h3 className="text-th-primary font-normal text-sm leading-snug group-hover:underline tracking-tight">
+        <p className="text-th-primary font-normal text-sm leading-snug group-hover:underline tracking-tight">
           {product.name}
-        </h3>
+        </p>
 
         {/* Precio */}
         <div className="pt-1 flex items-center gap-2">
