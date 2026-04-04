@@ -62,6 +62,9 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
   const [carouselLoading, setCarouselLoading] = useState(true);
   const carouselRef = useRef<HTMLDivElement>(null);
 
+  // Modal de guía de tallas
+  const [showSizeGuide, setShowSizeGuide] = useState(false);
+
   // ======= LÓGICA REACTIVA DE VARIANTES =======
   const ALL_SIZES = ['S', 'M', 'L', 'XL', '2XL', '3XL'];
   const variants = product?.variants || [];
@@ -215,8 +218,8 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
           </span>
         </div>
 
-        {/* --- MOBILE ONLY: Título y Precio arriba de la imagen --- */}
-        <div className="block lg:hidden w-full mb-6">
+        {/* --- ÚNICO H1: Título responsivo que funciona en móvil y desktop --- */}
+        <div className="w-full mb-6 lg:hidden">
           <div className="flex items-center gap-2 mb-2 text-[10px] sm:text-[11px] font-bold uppercase tracking-widest text-th-secondary">
             <span className="text-black">Nuevo</span>
             <span>{product.brand || "Adidas"}</span>
@@ -380,9 +383,9 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
                 <span>{product.brand || "Adidas"}</span>
               </div>
 
-              <h1 className="text-2xl xl:text-3xl font-semibold tracking-tighter text-black leading-tight mb-2">
+              <h2 className="text-2xl xl:text-3xl font-semibold tracking-tighter text-black leading-tight mb-2">
                 {product.name}
-              </h1>
+              </h2>
 
               <div className="flex items-center gap-3">
                 <span className="text-black font-medium font-jost text-lg xl:text-xl tracking-wide">
@@ -418,7 +421,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
                 <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary">Selecciona tu talla</h3>
-                <button className="flex items-center gap-1 text-[10px] md:text-xs uppercase tracking-widest text-th-secondary hover:text-th-primary transition-colors underline underline-offset-4">
+                <button onClick={() => setShowSizeGuide(true)} className="flex items-center gap-1 text-[10px] md:text-xs uppercase tracking-widest text-th-secondary hover:text-th-primary transition-colors underline underline-offset-4">
                   <Ruler className="w-3 h-3" /> Guía de tallas
                 </button>
               </div>
@@ -794,6 +797,73 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
           </div>
         </div>
       </section>
+
+      {/* MODAL: Guía de Tallas */}
+      {showSizeGuide && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6 md:p-8">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-2xl font-bold text-black">Guía de Tallas</h3>
+              <button onClick={() => setShowSizeGuide(false)} className="text-gray-500 hover:text-black text-2xl">
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-6">
+              <div>
+                <h4 className="font-bold text-lg text-black mb-3">Hombre</h4>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse">
+                    <thead className="bg-gray-100">
+                      <tr>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Talla</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Pecho (cm)</th>
+                        <th className="border border-gray-300 px-4 py-2 text-left">Largo (cm)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td className="border border-gray-300 px-4 py-2">S</td>
+                        <td className="border border-gray-300 px-4 py-2">84-88</td>
+                        <td className="border border-gray-300 px-4 py-2">68-71</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">M</td>
+                        <td className="border border-gray-300 px-4 py-2">92-96</td>
+                        <td className="border border-gray-300 px-4 py-2">72-75</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-4 py-2">L</td>
+                        <td className="border border-gray-300 px-4 py-2">100-104</td>
+                        <td className="border border-gray-300 px-4 py-2">76-79</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">XL</td>
+                        <td className="border border-gray-300 px-4 py-2">108-112</td>
+                        <td className="border border-gray-300 px-4 py-2">80-83</td>
+                      </tr>
+                      <tr>
+                        <td className="border border-gray-300 px-4 py-2">2XL</td>
+                        <td className="border border-gray-300 px-4 py-2">116-120</td>
+                        <td className="border border-gray-300 px-4 py-2">84-87</td>
+                      </tr>
+                      <tr className="bg-gray-50">
+                        <td className="border border-gray-300 px-4 py-2">3XL</td>
+                        <td className="border border-gray-300 px-4 py-2">124-128</td>
+                        <td className="border border-gray-300 px-4 py-2">88-91</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <p className="text-xs text-gray-600 text-center">
+                Si tienes dudas sobre tu talla, contacta a nuestro equipo en <a href="https://wa.me/529651386865" className="text-accent underline hover:text-[#e0b06d]">WhatsApp</a>
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <Footer />
     </div>

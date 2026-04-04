@@ -2,6 +2,62 @@
 const nextConfig = {
   experimental: {},
 
+  redirects: async () => [
+    // Redirigir rutas en inglés a españolas (SEO: 308 temporal para mantener método)
+    {
+      source: '/privacy',
+      destination: '/aviso-de-privacidad',
+      permanent: true, // 301 permanent
+    },
+    {
+      source: '/terms',
+      destination: '/terminos-y-condiciones',
+      permanent: true, // 301 permanent
+    },
+  ],
+
+  headers: async () => [
+    {
+      source: '/:path*',
+      headers: [
+        // CSP: Solo permitir Stripe, Cloudinary y Google Analytics
+        {
+          key: 'Content-Security-Policy',
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:; connect-src 'self' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://res.cloudinary.com; frame-src https://js.stripe.com; child-src 'none'; object-src 'none';",
+        },
+        // Impedir clickjacking
+        {
+          key: 'X-Frame-Options',
+          value: 'DENY',
+        },
+        // Prevenir MIME type sniffing
+        {
+          key: 'X-Content-Type-Options',
+          value: 'nosniff',
+        },
+        // Política referrer estricta
+        {
+          key: 'Referrer-Policy',
+          value: 'strict-origin-when-cross-origin',
+        },
+        // HSTS (solo en producción)
+        ...(process.env.NODE_ENV === 'production'
+          ? [
+              {
+                key: 'Strict-Transport-Security',
+                value: 'max-age=31536000; includeSubDomains; preload',
+              },
+            ]
+          : []),
+        // Permisos de Feature Policy
+        {
+          key: 'Permissions-Policy',
+          value: 'geolocation=(), microphone=(), camera=()',
+        },
+      ],
+    },
+  ],
+
   images: {
     /**
      * remotePatterns — Next.js 14+ (formato seguro recomendado)

@@ -79,6 +79,33 @@ const limiter = rateLimit({
 });
 app.use('/api', limiter);
 
+/* ─── Cache Control para endpoints cacheables ─── */
+// GET requests a endpoints públicos pueden ser cacheados
+app.use('/api/v1/products', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+  }
+  next();
+});
+app.use('/api/v1/clubs', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  }
+  next();
+});
+app.use('/api/v1/leagues', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  }
+  next();
+});
+app.use('/api/v1/categories', (req, res, next) => {
+  if (req.method === 'GET') {
+    res.set('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+  }
+  next();
+});
+
 /* ─── Health check ─── */
 app.get('/healthz', async (_req, res) => {
   try {

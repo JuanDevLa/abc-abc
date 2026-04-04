@@ -12,6 +12,27 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **NO inicies ninguna tarea sin revisar PLAN.md primero.**
 
+## ⚠️ RTK OBLIGATORIO EN TODAS LAS SESIONES
+
+**REGLA DE ORO:** Prefija TODOS los comandos bash con `rtk`. No hay excepciones.
+
+Ahorra ~80% tokens en build/git/npm. Ejemplo:
+```bash
+rtk npm run build
+rtk git status
+rtk tsc --noEmit
+```
+
+Configurado en: `~/.claude/settings.json` con hook PreToolUse que te recordará en cada comando.
+
+## 🧠 Modelo: Sonnet 4.6
+Para estas tareas de desarrollo (refactors, arquitectura, cambios complejos), usamos **Sonnet 4.6**.
+- Balance: ~1.5x más caro que Haiku, pero 2x más capaz para código
+- Capaz: análisis profundo, refactorings seguros, decisiones arquitectónicas
+- RTK sigue siendo obligatorio en bash (ahorra tokens en output, no en reasoning)
+
+Más info: Lee `~/.claude/projects/PLayerav2-main/.claude/memory/token-optimization.md`
+
 ## Plan de Desarrollo
 
 **SIEMPRE** consultar `.claude/PLAN.md` antes de proponer o iniciar cualquier tarea de desarrollo. Ese archivo contiene el plan completo con todas las tareas pendientes, su estado, complejidad y orden de ejecución recomendado. Cualquier nueva tarea o sprint debe registrarse ahí.

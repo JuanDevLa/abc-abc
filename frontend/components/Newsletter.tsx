@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
+  const [honeypot, setHoneypot] = useState(''); // Campo invisible para bots
   const [privacy, setPrivacy] = useState(false);
   const [terms, setTerms] = useState(false);
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -12,6 +13,19 @@ const Newsletter = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    // Honeypot: si está lleno, es un bot
+    if (honeypot.trim() !== '') {
+      // Silencio: finge éxito pero no envía nada
+      setStatus('success');
+      setEmail('');
+      setHoneypot('');
+      setPrivacy(false);
+      setTerms(false);
+      setTimeout(() => setStatus('idle'), 3000);
+      return;
+    }
+
     if (!privacy || !terms) {
       setErrorMsg('Debes aceptar el aviso de privacidad y los términos.');
       return;
@@ -27,6 +41,7 @@ const Newsletter = () => {
       if (!res.ok) throw new Error();
       setStatus('success');
       setEmail('');
+      setHoneypot('');
       setPrivacy(false);
       setTerms(false);
     } catch {
@@ -49,6 +64,18 @@ const Newsletter = () => {
         {/* Lado derecho — formulario */}
         <form onSubmit={handleSubmit} className="space-y-5">
 
+          {/* Honeypot — Campo invisible para atrapar bots */}
+          <input
+            type="text"
+            value={honeypot}
+            onChange={(e) => setHoneypot(e.target.value)}
+            name="phone"
+            aria-label="Phone number"
+            style={{ display: 'none' }}
+            autoComplete="off"
+            tabIndex={-1}
+          />
+
           {/* Aviso de éxito */}
           {status === 'success' && (
             <div className="bg-[#F8C37C]/10 border border-[#F8C37C]/40 text-[#F8C37C] text-sm px-4 py-3 rounded">
@@ -58,7 +85,9 @@ const Newsletter = () => {
 
           {/* Input + botón */}
           <div className="flex items-stretch">
+            <label htmlFor="newsletter-email" className="sr-only">Correo electrónico</label>
             <input
+              id="newsletter-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}

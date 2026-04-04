@@ -10,6 +10,11 @@ const SubscribeSchema = z.object({
 
 /* POST /api/v1/newsletter */
 router.post('/newsletter', async (req, res) => {
+  // Honeypot check: rechazar silenciosamente si contiene campos sospechosos
+  if (req.body.phone || req.body.name || req.body.website) {
+    return res.json({ success: true }); // Finge éxito para no alertar bots
+  }
+
   const parsed = SubscribeSchema.safeParse(req.body);
   if (!parsed.success) {
     return res.status(400).json({ error: 'Correo inválido' });

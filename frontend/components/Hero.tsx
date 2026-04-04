@@ -30,10 +30,12 @@ const Hero = () => {
           <div key={index} className="absolute inset-0 w-full h-full">
             <Image
               src={img}
-              alt={`Slide ${index}`}
+              alt=""
+              role="presentation"
               fill
               sizes="100vw"
               priority={index === 0}
+              loading={index === 0 ? 'eager' : 'lazy'}
               className={`object-cover transition-all duration-1000 ease-in-out
                 ${index === currentImage ? "opacity-50 scale-105" : "opacity-0 scale-100"}
               `}
