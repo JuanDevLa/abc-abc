@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 
 export const runtime = 'edge';
-export const alt = 'Jerseys Raw — Official Gear';
+export const alt = 'Jerseys Raw | Tienda Deportiva de Jerseys';
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -30,7 +30,7 @@ export default function OgImage() {
             JERSEYS RAW
           </div>
           <div style={{ fontSize: 28, color: '#F8C37C', fontWeight: 700, letterSpacing: '6px', textTransform: 'uppercase' }}>
-            Official Gear
+            Tienda Deportiva
           </div>
           <div style={{ fontSize: 20, color: '#888888', marginTop: 8, letterSpacing: '2px' }}>
             Premier League · La Liga · Champions League

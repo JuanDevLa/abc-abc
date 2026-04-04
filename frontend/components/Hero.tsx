@@ -51,7 +51,7 @@ const Hero = () => {
       {/* CONTENIDO */}
       <div className="relative z-20 text-center max-w-5xl px-4 mt-16 animate-in fade-in zoom-in duration-1000">
         <h2 className="text-accent font-bold tracking-[0.3em] uppercase mb-6 text-xs md:text-sm drop-shadow-md">
-          Est. 2025 • Official Gear
+          Desde 2025 • Jerseys Auténticos
         </h2>
 
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-heading text-white tracking-tight uppercase mb-6 leading-[0.9] drop-shadow-2xl">

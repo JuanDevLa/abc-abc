@@ -11,7 +11,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 export const metadata: Metadata = {
   metadataBase: new URL("https://jerseysraw.com"),
   title: {
-    default: "Jerseys Raw — Official Gear",
+    default: "Jerseys Raw | Tienda Deportiva de Jerseys",
     template: "%s | Jerseys Raw",
   },
   description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más. Envíos a toda la República Mexicana.",
@@ -22,13 +22,13 @@ export const metadata: Metadata = {
     locale: "es_MX",
     url: "https://jerseysraw.com",
     siteName: "Jerseys Raw",
-    title: "Jerseys Raw — Official Gear",
+    title: "Jerseys Raw | Tienda Deportiva de Jerseys",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@jerseysraw",
-    title: "Jerseys Raw — Official Gear",
+    title: "Jerseys Raw | Tienda Deportiva de Jerseys",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
   },
   robots: {
