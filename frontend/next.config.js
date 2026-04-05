@@ -3,13 +3,6 @@ const nextConfig = {
   experimental: {},
 
   redirects: async () => [
-    // www → non-www (SEO: evitar contenido duplicado entre www y apex)
-    {
-      source: '/:path*',
-      has: [{ type: 'host', value: 'www.jerseysraw.com' }],
-      destination: 'https://jerseysraw.com/:path*',
-      permanent: true,
-    },
     // Redirigir rutas en inglés a españolas (SEO: 308 temporal para mantener método)
     {
       source: '/privacy',
