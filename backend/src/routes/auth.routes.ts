@@ -5,7 +5,7 @@ import rateLimit from 'express-rate-limit';
 import { z } from 'zod';
 import { prisma } from '../lib/prisma.js';
 import { sendVerificationEmail, sendPasswordResetEmail } from '../lib/mailer.js';
-import { hashPassword, verifyPassword, generateToken } from '../lib/auth.js';
+import { hashPassword, verifyPassword, generateToken, generateRefreshToken, getRefreshTokenExpiry } from '../lib/auth.js';
 import { requireAuth } from '../middlewares/requireAuth.js';
 
 /* ─── Rate limiter estricto para endpoints OTP (10 intentos / 15 min por IP) ─── */
@@ -71,7 +71,7 @@ function genCode(): string {
 router.post('/register', registerLimiter, async (req, res, next) => {
   try {
     const parsed = RegisterSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
     const { email, password, name } = parsed.data;
 
     const exists = await prisma.user.findUnique({ where: { email } });
@@ -126,7 +126,7 @@ router.post('/register', registerLimiter, async (req, res, next) => {
 router.post('/verify-email', otpLimiter, async (req, res, next) => {
   try {
     const parsed = VerifyEmailSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
     const { email, code } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -160,7 +160,7 @@ router.post('/verify-email', otpLimiter, async (req, res, next) => {
 router.post('/login', loginLimiter, async (req, res, next) => {
   try {
     const parsed = LoginSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
     const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -178,9 +178,19 @@ router.post('/login', loginLimiter, async (req, res, next) => {
     if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
 
     const token = generateToken({ sub: user.id, role: user.role });
+    const refreshToken = generateRefreshToken();
+    const refreshTokenExp = getRefreshTokenExpiry();
+
+    // Guardar refresh token en DB
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken, refreshTokenExp },
+    });
+
     return res.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
       token,
+      refreshToken,
     });
   } catch (err) {
     next(err);
@@ -210,7 +220,7 @@ const UpdateProfileSchema = z.object({
 router.put('/me', requireAuth, async (req, res, next) => {
   try {
     const parsed = UpdateProfileSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
 
     const updated = await prisma.user.update({
       where: { id: req.user!.sub },
@@ -227,7 +237,7 @@ router.put('/me', requireAuth, async (req, res, next) => {
 router.post('/forgot-password', otpLimiter, async (req, res, next) => {
   try {
     const parsed = ForgotPasswordSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
     const { email } = parsed.data;
 
     // Siempre responder 200 aunque el email no exista (previene enumeración de usuarios)
@@ -258,7 +268,7 @@ router.post('/forgot-password', otpLimiter, async (req, res, next) => {
 router.post('/reset-password', otpLimiter, async (req, res, next) => {
   try {
     const parsed = ResetPasswordSchema.safeParse(req.body);
-    if (!parsed.success) return res.status(400).json({ error: parsed.error.flatten() });
+    if (!parsed.success) return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
     const { email, code, password } = parsed.data;
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -347,10 +357,73 @@ router.post('/google', loginLimiter, async (req, res, next) => {
     }
 
     const token = generateToken({ sub: user.id, role: user.role });
+    const refreshToken = generateRefreshToken();
+    const refreshTokenExp = getRefreshTokenExpiry();
+
+    // Guardar refresh token en DB
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken, refreshTokenExp },
+    });
+
     return res.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
       token,
+      refreshToken,
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v1/auth/refresh — Renovar access token usando refresh token
+const RefreshSchema = z.object({
+  refreshToken: z.string().min(1),
+});
+
+router.post('/refresh', async (req, res, next) => {
+  try {
+    const parsed = RefreshSchema.safeParse(req.body);
+    if (!parsed.success) return res.status(400).json({ error: 'Token requerido', code: 'VALIDATION_ERROR', details: parsed.error.flatten().fieldErrors });
+
+    const { refreshToken } = parsed.data;
+
+    // Buscar usuario con refresh token válido (no expirado)
+    const user = await prisma.user.findFirst({
+      where: {
+        refreshToken,
+        refreshTokenExp: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      return res.status(401).json({ error: 'Refresh token inválido o expirado', code: 'UNAUTHORIZED' });
+    }
+
+    // Generar nuevo access token y rotar refresh token
+    const newToken = generateToken({ sub: user.id, role: user.role });
+    const newRefreshToken = generateRefreshToken();
+    const newRefreshTokenExp = getRefreshTokenExpiry();
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { refreshToken: newRefreshToken, refreshTokenExp: newRefreshTokenExp },
+    });
+
+    return res.json({ token: newToken, refreshToken: newRefreshToken });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/v1/auth/logout — Invalidar refresh token
+router.post('/logout', requireAuth, async (req, res, next) => {
+  try {
+    await prisma.user.update({
+      where: { id: req.user!.sub },
+      data: { refreshToken: null, refreshTokenExp: null },
+    });
+    return res.json({ success: true });
   } catch (err) {
     next(err);
   }

@@ -26,7 +26,7 @@ router.post('/analytics/view', viewLimiter, async (req: Request, res: Response) 
 
   try {
     await prisma.productView.create({ data: { productId } });
-    return res.status(200).json({ ok: true });
+    return res.status(200).json({ success: true });
   } catch {
     // Fallo silencioso — no interrumpir la experiencia del usuario
     return res.status(200).json({ ok: false });

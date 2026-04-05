@@ -52,6 +52,7 @@ router.post('/orders', createOrderLimiter, async (req: Request, res: Response) =
             .join('; ');
         return res.status(400).json({
             error: messages || 'Datos inválidos',
+            code: 'VALIDATION_ERROR',
             details: fieldErrors,
         });
     }
@@ -458,6 +459,7 @@ router.put('/orders/:id/status', requireAuth, async (req: Request, res: Response
     if (!parsed.success) {
         return res.status(400).json({
             error: 'Status inválido',
+            code: 'VALIDATION_ERROR',
             details: parsed.error.flatten().fieldErrors,
         });
     }

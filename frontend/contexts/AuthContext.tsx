@@ -10,6 +10,7 @@ import {
 } from 'react';
 
 const API = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:4000';
+const REFRESH_TOKEN_KEY = 'jr_refresh_token';
 
 interface AuthUser {
   id: string;
@@ -35,6 +36,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const tryRefresh = useCallback(async () => {
+    const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+    if (!refreshToken) return false;
+
+    try {
+      const res = await fetch(`${API}/api/v1/auth/refresh`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        localStorage.setItem('jr_token', data.token);
+        localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
+        setToken(data.token);
+        return true;
+      } else {
+        // Refresh token inválido o expirado — logout completo
+        localStorage.removeItem('jr_token');
+        localStorage.removeItem(REFRESH_TOKEN_KEY);
+        setToken(null);
+        setUser(null);
+        return false;
+      }
+    } catch {
+      return false;
+    }
+  }, []);
+
   const refreshUser = useCallback(async (savedToken?: string) => {
     const t = savedToken ?? token;
     if (!t) return;
@@ -45,8 +76,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (res.ok) {
         const data = await res.json();
         setUser(data);
+      } else if (res.status === 401 || res.status === 403) {
+        // Token expirado — intentar refresh
+        const refreshed = await tryRefresh();
+        if (refreshed) {
+          // Reintentar /me con el nuevo token
+          const newToken = localStorage.getItem('jr_token');
+          if (newToken) {
+            const retryRes = await fetch(`${API}/api/v1/auth/me`, {
+              headers: { Authorization: `Bearer ${newToken}` },
+            });
+            if (retryRes.ok) {
+              const data = await retryRes.json();
+              setUser(data);
+            } else {
+              setUser(null);
+            }
+          }
+        } else {
+          setUser(null);
+        }
       } else {
-        // Token inválido o expirado
+        // Otro error
         localStorage.removeItem('jr_token');
         setToken(null);
         setUser(null);
@@ -54,7 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } catch {
       // ignore — sin conexión
     }
-  }, [token]);
+  }, [token, tryRefresh]);
 
   // Restaurar sesión al montar
   useEffect(() => {
@@ -81,6 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
     localStorage.setItem('jr_token', data.token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     setToken(data.token);
     setUser(data.user);
   };
@@ -99,12 +151,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const data = await res.json();
     localStorage.setItem('jr_token', data.token);
+    localStorage.setItem(REFRESH_TOKEN_KEY, data.refreshToken);
     setToken(data.token);
     setUser(data.user);
   };
 
-  const logout = () => {
+  const logout = async () => {
+    const t = token;
+    // Intentar invalidar refresh token en backend (best effort)
+    if (t) {
+      try {
+        await fetch(`${API}/api/v1/auth/logout`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${t}` },
+        });
+      } catch {
+        // ignore — error de red o servidor
+      }
+    }
     localStorage.removeItem('jr_token');
+    localStorage.removeItem(REFRESH_TOKEN_KEY);
     setToken(null);
     setUser(null);
   };

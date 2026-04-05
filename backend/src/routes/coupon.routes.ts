@@ -139,7 +139,7 @@ router.delete('/admin/coupons/:id', requireAuth, async (req: Request, res: Respo
   if (req.user?.role !== 'admin') return res.status(403).json({ error: 'Forbidden' });
   try {
     await prisma.coupon.delete({ where: { id: req.params.id } });
-    res.json({ ok: true });
+    res.json({ success: true });
   } catch (e: any) {
     if (e?.code === 'P2025') return res.status(404).json({ error: 'Cupón no encontrado' });
     res.status(500).json({ error: 'Error al eliminar cupón' });

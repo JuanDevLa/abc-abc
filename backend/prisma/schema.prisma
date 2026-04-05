@@ -378,6 +378,8 @@ model User {
   rewardRedemptions   RewardRedemption[]
   customerTags        String[]             @default([])
   notes              CustomerNote[]
+  refreshToken        String?
+  refreshTokenExp     DateTime?
 
   @@index([role])
   @@index([createdAt])

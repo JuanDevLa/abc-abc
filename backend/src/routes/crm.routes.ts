@@ -275,7 +275,7 @@ router.delete('/customers/:id/notes/:noteId', requireAuth, async (req: Request, 
     if (!note) return res.status(404).json({ error: 'Nota no encontrada' });
 
     await prisma.customerNote.delete({ where: { id: noteId } });
-    return res.json({ ok: true });
+    return res.json({ success: true });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ error: 'Error interno' });

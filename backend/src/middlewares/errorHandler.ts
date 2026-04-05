@@ -19,13 +19,12 @@ export function errorHandler(
   // Validación Zod
   if ((err as ZodLikeError)?.name === 'ZodError') {
     const z = err as ZodLikeError;
-    return res.status(400).json({ error: z.flatten?.() ?? 'Validation error' });
+    return res.status(400).json({ error: 'Datos inválidos', code: 'VALIDATION_ERROR', details: z.flatten?.() });
   }
 
   // Prisma: unique constraint (slug, sku, etc.)
   if ((err as PrismaLikeError)?.code === 'P2002') {
-    const p = err as PrismaLikeError;
-    return res.status(409).json({ error: 'Unique constraint failed', meta: p.meta });
+    return res.status(409).json({ error: 'Recurso duplicado', code: 'CONFLICT' });
   }
 
   // Log del error no esperado
