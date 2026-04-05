@@ -11,7 +11,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 export const metadata: Metadata = {
   metadataBase: new URL("https://jerseysraw.com"),
   title: {
-    default: "Jerseys Raw | Tienda Deportiva de Jerseys",
+    default: "Jerseys Raw | Tienda Deportiva de Jerseys en México",
     template: "%s | Jerseys Raw",
   },
   description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más. Envíos a toda la República Mexicana.",
@@ -20,15 +20,15 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "es_MX",
-    url: "https://jerseysraw.com",
+    url: "https://jerseysraw.com/",
     siteName: "Jerseys Raw",
-    title: "Jerseys Raw | Tienda Deportiva de Jerseys",
+    title: "Jerseys Raw | Tienda Deportiva de Jerseys en México",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
   },
   twitter: {
     card: "summary_large_image",
     site: "@jerseysraw",
-    title: "Jerseys Raw | Tienda Deportiva de Jerseys",
+    title: "Jerseys Raw | Tienda Deportiva de Jerseys en México",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más.",
   },
   robots: {
@@ -51,7 +51,13 @@ export default function RootLayout({
         "@id": "https://jerseysraw.com/#organization",
         "name": "Jerseys Raw",
         "url": "https://jerseysraw.com",
-        "logo": "https://jerseysraw.com/favicon.png",
+        "logo": {
+          "@type": "ImageObject",
+          "@id": "https://jerseysraw.com/#logo",
+          "url": "https://jerseysraw.com/favicon.png",
+          "width": 512,
+          "height": 512,
+        },
         "sameAs": ["https://www.instagram.com/JERSEYS_RAW"],
         "contactPoint": {
           "@type": "ContactPoint",
@@ -69,8 +75,15 @@ export default function RootLayout({
         "publisher": { "@id": "https://jerseysraw.com/#organization" },
         "potentialAction": {
           "@type": "SearchAction",
-          "target": "https://jerseysraw.com/catalog?search={search_term_string}",
-          "query-input": "required name=search_term_string",
+          "target": {
+            "@type": "EntryPoint",
+            "urlTemplate": "https://jerseysraw.com/catalog?search={search_term_string}",
+          },
+          "query-input": {
+            "@type": "PropertyValueSpecification",
+            "valueRequired": true,
+            "valueName": "search_term_string",
+          },
         },
       },
     ],

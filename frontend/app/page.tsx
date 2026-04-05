@@ -8,10 +8,10 @@ import Newsletter from '../components/Newsletter';
 import Footer from '../components/Footer';
 
 export const metadata: Metadata = {
-  title: { absolute: "Jerseys Raw | Tienda Deportiva de Jerseys" },
-  description: "Jerseys auténticos de fútbol para hombre y mujer. Premier League, La Liga, Bundesliga, Champions League y más. Envíos a toda la República Mexicana.",
+  title: { absolute: "Jerseys Raw | Tienda Deportiva de Jerseys en México" },
+  description: "Jerseys auténticos de fútbol para hombre y mujer. Premier League, La Liga, Champions League y más. Envíos a toda México.",
   openGraph: {
-    title: "Jerseys Raw | Tienda Deportiva de Jerseys",
+    title: "Jerseys Raw | Tienda Deportiva de Jerseys en México",
     description: "Jerseys auténticos de fútbol. Premier League, La Liga, Champions League y más. Envíos a toda México.",
     url: "https://jerseysraw.com/",
   },
