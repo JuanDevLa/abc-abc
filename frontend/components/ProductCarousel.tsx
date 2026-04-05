@@ -137,11 +137,11 @@ const ProductCarousel = () => {
             {INFINITE_PRODUCTS.map((product, index) => (
               <div
                 key={`${product.id}-${index}`}
-                className="w-64 md:w-[calc(23%-12px)] lg:w-[calc(23%-12px)] flex-shrink-0 snap-center lg:snap-start group flex flex-col h-[380px] md:h-[430px] lg:h-[490px]"
+                className="w-64 md:w-[calc(33%-11px)] lg:w-[calc(23%-12px)] flex-shrink-0 snap-center lg:snap-start group flex flex-col h-[380px] md:h-[400px] lg:h-[490px]"
               >
                 {/* NOMBRE — arriba, impactante */}
                 <div className="pb-3 text-center">
-                  <p className="text-3xl md:text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
+                  <p className="text-3xl md:text-3xl lg:text-4xl uppercase tracking-[0.1em] italic bg-gradient-to-r from-[#f8c889] via-[#fbc57d] to-[#e8a84a] bg-clip-text text-transparent leading-none" style={{ fontFamily: "'Barlow Condensed', sans-serif", fontWeight: 700 }}>
                     {product.name}
                   </p>
                 </div>
@@ -170,7 +170,7 @@ const ProductCarousel = () => {
                 <div className="pt-2 pb-3 text-center">
                   <Link
                     href={`/teams/${product.slug}`}
-                    className="inline-flex items-center justify-center px-14 py-2 lg:py-2.5 bg-gradient-to-b from-[#f8c889] via-[#fbc57d] to-[#fec375] text-black rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
+                    className="inline-flex items-center justify-center px-8 md:px-8 lg:px-14 py-2 lg:py-2.5 bg-gradient-to-b from-[#f8c889] via-[#fbc57d] to-[#fec375] text-black rounded-full font-semibold text-sm hover:opacity-90 transition-opacity"
                   >
                     Comprar
                   </Link>
