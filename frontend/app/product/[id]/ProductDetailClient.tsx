@@ -180,7 +180,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
     else if (el.scrollLeft <= 50) el.scrollLeft += oneSet;
   };
 
-  if (loading || !mounted) {
+  if (loading) {
     return <ProductSkeleton />;
   }
 
@@ -383,9 +383,9 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
                 <span>{product.brand || "Adidas"}</span>
               </div>
 
-              <h2 className="text-2xl xl:text-3xl font-semibold tracking-tighter text-black leading-tight mb-2">
+              <h1 className="text-2xl xl:text-3xl font-semibold tracking-tighter text-black leading-tight mb-2">
                 {product.name}
-              </h2>
+              </h1>
 
               <div className="flex items-center gap-3">
                 <span className="text-black font-medium font-jost text-lg xl:text-xl tracking-wide">
@@ -411,7 +411,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
 
             {/* Descripción */}
             <div className="mb-4">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-2">Descripción</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-2">Descripción</p>
               <p className="text-th-secondary leading-relaxed font-light text-sm">
                 {product.description || "El jersey oficial de la temporada. Fabricado con tecnología de alta transpirabilidad para mantenerte fresco dentro y fuera de la cancha."}
               </p>
@@ -420,7 +420,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             {/* Selector de Talla */}
             <div className="mb-4">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary">Selecciona tu talla</h3>
+                <p className="text-xs font-bold uppercase tracking-wider text-th-secondary">Selecciona tu talla</p>
                 <button onClick={() => setShowSizeGuide(true)} className="flex items-center gap-1 text-[10px] md:text-xs uppercase tracking-widest text-th-secondary hover:text-th-primary transition-colors underline underline-offset-4">
                   <Ruler className="w-3 h-3" /> Guía de tallas
                 </button>
@@ -450,7 +450,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
 
             {/* Selector de Versión */}
             <div className="mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Versión</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Versión</p>
               <div className="grid grid-cols-2 gap-2 w-[60%]">
                 {(['fan', 'player'] as const).map(ver => {
                   const hasFastStock = variants.some((v: any) =>
@@ -479,7 +479,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
 
             {/* Selector de Corte */}
             <div className="mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Corte</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Corte</p>
               <div className="grid grid-cols-2 gap-2 w-[60%]">
                 {(['SHORT', 'LONG'] as const).map(sl => {
                   const hasFastStock = variants.some((v: any) =>
@@ -508,7 +508,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             </div>
 
             <div className="mb-6">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Parches</h3>
+              <p className="text-xs font-bold uppercase tracking-wider text-th-secondary mb-3">Parches</p>
               <div className="grid grid-cols-2 gap-2 w-[60%]">
                 {(['none', 'patch'] as const).map(p => (
                   <button
@@ -528,7 +528,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             {/* PERSONALIZACIÓN UI */}
             <div className="mb-6 space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="text-sm font-bold uppercase tracking-wider text-th-primary">¿Deseas personalizar tu Jersey?</h3>
+                <p className="text-sm font-bold uppercase tracking-wider text-th-primary">¿Deseas personalizar tu Jersey?</p>
                 {!canCustomize && (
                   <span className="text-[10px] font-bold uppercase tracking-wider text-red-400 bg-red-500/10 px-2 py-1 rounded">No Disponible</span>
                 )}
@@ -632,25 +632,26 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
             {/* DISPONIBILIDAD LOGÍSTICA MINIMALISTA */}
             <div className="mt-4 space-y-1">
               {isCustomized ? (
-                <>
-                  <p className="text-sm font-medium text-black">Envío Estándar (Personalizado)</p>
-                  <p className="text-sm text-th-secondary">Llega del {getDeliveryDates('custom')}</p>
-                </>
+                <p className="text-sm font-medium text-black">Envío Estándar (Personalizado)</p>
               ) : localStock > 0 ? (
-                <>
-                  <p className="text-sm font-medium text-black">Envío Rápido Disponible</p>
-                  <p className="text-sm text-th-secondary">Llega del {getDeliveryDates('fast')}</p>
-                </>
+                <p className="text-sm font-medium text-black">Envío Rápido Disponible</p>
               ) : localStock === 0 && isDropshippable ? (
-                <>
-                  <p className="text-sm font-medium text-black">Envío Estándar</p>
-                  <p className="text-sm text-th-secondary">Llega del {getDeliveryDates('dropship')}</p>
-                </>
+                <p className="text-sm font-medium text-black">Envío Estándar</p>
               ) : (
-                <>
-                  <p className="text-sm font-medium text-red-600">Agotado</p>
-                  <p className="text-sm text-th-secondary">Sin disponibilidad por el momento.</p>
-                </>
+                <p className="text-sm font-medium text-red-600">Agotado</p>
+              )}
+              {mounted ? (
+                <p className="text-sm text-th-secondary">
+                  {isCustomized
+                    ? `Llega del ${getDeliveryDates('custom')}`
+                    : localStock > 0
+                    ? `Llega del ${getDeliveryDates('fast')}`
+                    : localStock === 0 && isDropshippable
+                    ? `Llega del ${getDeliveryDates('dropship')}`
+                    : "Sin disponibilidad por el momento."}
+                </p>
+              ) : (
+                <div className="h-4 w-48 rounded bg-neutral-100 animate-pulse" />
               )}
             </div>
 
@@ -757,6 +758,7 @@ export default function ProductDetailClient({ productId, initialProduct }: Props
                   <Link
                     key={`${p.id}-${idx}`}
                     href={`/product/${p.id}`}
+                    rel={idx >= carouselProducts.length ? "nofollow" : undefined}
                     className="flex-none w-[45%] md:w-[23%] group"
                   >
                     <div className="aspect-square relative overflow-hidden rounded-2xl bg-neutral-100 border border-neutral-200/60 mb-3 hover:shadow-lg hover:shadow-neutral-200/50 transition-shadow duration-300">
