@@ -57,11 +57,12 @@ const Hero = () => {
         <h1 className="text-6xl md:text-8xl lg:text-9xl font-heading text-white tracking-tight uppercase mb-6 leading-[0.9] drop-shadow-2xl">
           Jerseys <br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-gray-200 to-gray-500">Raw</span>
+          <span className="sr-only"> — Tienda de Jerseys de Fútbol en México</span>
         </h1>
 
         <p className="text-lg md:text-xl text-gray-300 mb-10 max-w-2xl mx-auto font-light leading-relaxed drop-shadow-lg">
-          La colección definitiva de indumentaria oficial. <br className="hidden md:block" />
-          Calidad profesional para quienes viven el juego dentro y fuera de la cancha.
+          Tu tienda deportiva de jerseys de fútbol auténticos. <br className="hidden md:block" />
+          Premier League, La Liga, Champions League y más. Envíos a toda la República Mexicana.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-5">

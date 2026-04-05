@@ -23,7 +23,7 @@ const nextConfig = {
         // CSP: Solo permitir Stripe, Cloudinary y Google Analytics
         {
           key: 'Content-Security-Policy',
-          value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:; media-src https://res.cloudinary.com; connect-src 'self' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://res.cloudinary.com https://playeras-backend.onrender.com https://accounts.google.com; frame-src https://js.stripe.com https://accounts.google.com; child-src 'none'; object-src 'none';",
+          value: "default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://accounts.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self' data:; media-src https://res.cloudinary.com; connect-src 'self' https://js.stripe.com https://www.googletagmanager.com https://www.google-analytics.com https://res.cloudinary.com https://playeras-backend.onrender.com https://accounts.google.com; frame-src https://js.stripe.com https://accounts.google.com; child-src 'none'; object-src 'none';",
         },
         // Impedir clickjacking
         {
