@@ -36,6 +36,11 @@ import newsletterRoutes from './routes/newsletter.routes.js';
 const app = express();
 app.set('trust proxy', 1);
 
+/* ─── CORS (PRIMERO: antes de helmet y cualquier otra cosa) ─── */
+// Debe estar antes de helmet para que los preflight OPTIONS respondan correctamente.
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 /* ─── Webhook de Stripe (ANTES de express.json) ─── */
 // Stripe necesita el body crudo (Buffer) para verificar la firma HMAC.
 // Si express.json() se ejecuta primero, la verificación falla con 400.
@@ -69,7 +74,6 @@ app.use(helmet({
 
 app.use(express.json({ limit: '100kb' }));
 app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
-app.use(cors(corsOptions));
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
